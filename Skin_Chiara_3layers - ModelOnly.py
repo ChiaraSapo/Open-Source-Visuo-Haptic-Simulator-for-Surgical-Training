@@ -13,7 +13,7 @@ x_length=20+x_offset
 y_length=20+y_offset
 n_vertices_per_layer=x_vertices*y_vertices
 
-z_epi=5 #thickness=0.1mm youngModulus=1MPa
+z_epi=3 #thickness=0.1mm youngModulus=1MPa
 z_derma=z_epi*2 #thickness=1mm youngModulus=88-300kPa
 z_hypo=z_epi*3 #thickness=1.2mm youngModulus=34kPa
 
@@ -63,23 +63,26 @@ def createScene(root):
     root.dt=0.01
 
     # List of required plugins: temporarely split and ordered alphabetically to improve readability
-    root.addObject('RequiredPlugin', pluginName="Geomagic")
-    root.addObject('RequiredPlugin', pluginName="SofaBoundaryCondition ")
-    root.addObject('RequiredPlugin', pluginName="SofaDeformable ")    
-    root.addObject('RequiredPlugin', pluginName="SofaConstraint ")
-    root.addObject('RequiredPlugin', pluginName="SofaGeneralLoader") 
-    root.addObject('RequiredPlugin', pluginName="SofaGeneralObjectInteraction") 
-    root.addObject('RequiredPlugin', pluginName="SofaGeneralSimpleFem ")
-    root.addObject('RequiredPlugin', pluginName="SofaHaptics") 
-    root.addObject('RequiredPlugin', pluginName="SofaImplicitOdeSolver") 
-    root.addObject('RequiredPlugin', pluginName="SofaLoader ")
-    root.addObject('RequiredPlugin', pluginName="SofaMeshCollision") 
-    root.addObject('RequiredPlugin', pluginName="SofaOpenglVisual ")
-    root.addObject('RequiredPlugin', pluginName="SofaRigid") 
-    root.addObject('RequiredPlugin', pluginName="SofaSimpleFem") 
-    root.addObject('RequiredPlugin', pluginName="SofaSparseSolver ")
-    root.addObject('RequiredPlugin', pluginName="SofaUserInteraction")
-    root.addObject('RequiredPlugin', pluginName="SofaTopologyMapping ")
+    # root.addObject('RequiredPlugin', pluginName="Geomagic")
+    # root.addObject('RequiredPlugin', pluginName="SofaBoundaryCondition ")
+    # root.addObject('RequiredPlugin', pluginName="SofaCarving ")
+    # root.addObject('RequiredPlugin', pluginName="SofaConstraint ")
+    # root.addObject('RequiredPlugin', pluginName="SofaDeformable ")    
+    # root.addObject('RequiredPlugin', pluginName="SofaGeneralLoader") 
+    # root.addObject('RequiredPlugin', pluginName="SofaGeneralObjectInteraction") 
+    # root.addObject('RequiredPlugin', pluginName="SofaGeneralSimpleFem ")
+    # root.addObject('RequiredPlugin', pluginName="SofaHaptics") 
+    # root.addObject('RequiredPlugin', pluginName="SofaImplicitOdeSolver") 
+    # root.addObject('RequiredPlugin', pluginName="SofaLoader ")
+    # root.addObject('RequiredPlugin', pluginName="SofaMeshCollision") 
+    # root.addObject('RequiredPlugin', pluginName="SofaOpenglVisual ")
+    # root.addObject('RequiredPlugin', pluginName="SofaRigid") 
+    # root.addObject('RequiredPlugin', pluginName="SofaSimpleFem") 
+    # root.addObject('RequiredPlugin', pluginName="SofaSparseSolver ")
+    # root.addObject('RequiredPlugin', pluginName="SofaUserInteraction")
+    # root.addObject('RequiredPlugin', pluginName="SofaTopologyMapping ")
+
+    root.addObject('RequiredPlugin', pluginName="Geomagic SofaBoundaryCondition SofaCarving SofaConstraint SofaDeformable SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping ")
 
     # Collision
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
@@ -93,7 +96,7 @@ def createScene(root):
     root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
 
     # Geomagic device
-    root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="1", drawDevice="0", positionBase="0 0 8",  orientationBase="0.707 0 0 0.707")
+    root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="0", drawDevice="0", positionBase="0 0 8",  orientationBase="0.707 0 0 0.707")
     
     
 
@@ -115,10 +118,6 @@ def createScene(root):
     epi.addObject('HexahedronFEMForceField', template="Vec3d", name="FEM", poissonRatio=poissonRatio_ALL, youngModulus=youngModulus_E )
     epi.addObject('UncoupledConstraintCorrection')
 
-    # Comment after
-    epi.addObject('FixedConstraint', template="Vec3d", name="Fixed Dofs", indices=computeIndices("bottom", z_epi))
-    epi.addObject('FixedPlaneConstraint', template="Vec3d", name="defaultPlane", direction="0 0 1", dmin="0")
-    
     quad=epi.addChild('quad')
     quad.addObject('QuadSetTopologyContainer', name="Q_Container")
     quad.addObject('QuadSetTopologyModifier', name="Q_Modifier")
@@ -228,7 +227,7 @@ def createScene(root):
     
     
     
-    
+    '''
     ####################################################################
     #--------------------- COLLISION ON GEOMAGIC ----------------------#
     ####################################################################     
@@ -260,45 +259,7 @@ def createScene(root):
     CollisionModel.addObject('PointCollisionModel')#, contactStiffness="0.001", name="Instrument")
     CollisionModel.addObject('RigidMapping', name="CollisionMapping",  input="@instrumentState",  output="@instrumentCollisionState")
 
-    
     '''
-    
-    #####################################################
-    #--------------------- NEEDLE ----------------------#
-    #####################################################   
-    needleNode = root.addChild('Needle')
-
-    needleNode.addObject('EulerImplicitSolver', name='ODE solver', rayleighStiffness="0.01", rayleighMass="1.0")
-    needleNode.addObject('CGLinearSolver', name='linear solver', iterations="25", tolerance="1e-7", threshold="1e-7")
-    needleNode.addObject('MechanicalObject', name='mechObject', template='Rigid3d', 
-                            position="0 0 10", scale3d=[1.2*scale, scale, scale])
-    needleNode.addObject('UniformMass', name='mass', totalMass="1")
-    needleNode.addObject('UncoupledConstraintCorrection')
-
-    # Visual node
-    needleVisNode = needleNode.addChild('VisualModel')
-
-    needleVisNode.addObject('MeshObjLoader', name='instrumentMeshLoader', filename="mesh/suture_needle.obj")
-    needleVisNode.addObject('OglModel', name='InstrumentVisualModel', src='@instrumentMeshLoader', 
-                                dy="0", scale3d=[1.2*scale, scale, scale])
-    needleVisNode.addObject('RigidMapping', name='MM-VM mapping', input='@../mechObject', output='@InstrumentVisualModel')
-
-    # Collision node
-    needleColNode = needleNode.addChild('CollisionModel')
-
-    needleColNode.addObject('MeshObjLoader', filename="mesh/suture_needle.obj", name='loader')
-    needleColNode.addObject('MeshTopology', src='@loader', name='InstrumentCollisionModel')
-    needleColNode.addObject('MechanicalObject', src='@InstrumentCollisionModel', name='instrumentCollisionState', 
-                                dy="0", scale3d=[1.2*scale, scale, scale])
-    needleColNode.addObject('RigidMapping', name='MM-CM mapping', input='@../mechObject', output='@instrumentCollisionState')
-
-    #needleColNode.addObject('TriangleCollisionModel', name='instrumentTriangle', contactStiffness=10, contactFriction=10)
-    needleColNode.addObject('LineCollisionModel', name='instrumentLine', contactStiffness=10, contactFriction=10)
-    needleColNode.addObject('PointCollisionModel', name='instrumentPoint', contactStiffness="10", contactFriction="10")
-    
-
-    '''
-
     return root
 
 
