@@ -10,7 +10,7 @@ youngModulus_E=1000
 scale3d_skin="50 30 5"
 GeomagicPosition="0 20 15"
 
-skinVolume_fileName="C:\sofa\src\examples\skinVolume2"
+skinVolume_fileName="mesh\skinVolume2"
 
 # Choose in your script to activate or not the GUI
 USE_GUI = True

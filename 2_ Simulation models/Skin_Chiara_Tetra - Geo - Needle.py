@@ -12,9 +12,9 @@ scale3d_needle="1.6 1.6 1.6"
 pointPosition_onNeedle="-2.32 0.007 0.02" #N: 5,5,5
 scale3d_skin="50 30 5"
 GeomagicPosition="0 20 15"
-skinVolume_fileName="C:\sofa\src\Chiara\mesh\skinVolume2"
+skinVolume_fileName="mesh\skinVolume2"
 #skinSurface_fileName="C:\sofa\src\examples\skinSurface.stl"
-needleVolume_fileName="C:\sofa\src\Chiara\mesh\suture_needle.obj"
+needleVolume_fileName="mesh\suture_needle.obj"
 
 # Choose in your script to activate or not the GUI
 USE_GUI = True

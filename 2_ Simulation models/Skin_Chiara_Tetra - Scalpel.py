@@ -12,7 +12,7 @@ youngModulus_E=1000
 scale3d_skin="80 50 20"
 scale3d_scalpel="2 2 2"
 # Model files
-skinVolume_fileName="C:\sofa\src\Chiara\mesh\skinVolume2"
+skinVolume_fileName="mesh\skinVolume2"
 scalpel_Instrument="mesh\scalpel.obj"
 # Collision particles positions
 pointPosition_onscalpel1="8 -7.4 -17" 

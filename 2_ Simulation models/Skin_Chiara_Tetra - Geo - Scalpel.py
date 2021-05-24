@@ -8,7 +8,7 @@ scale3d_skin="0.5 0.3 0.5"
 #scale3d_skin="50 30 5"
 scale3d_scalpel="1 1 1"
 # Model files
-skinVolume_fileName="C:\sofa\src\Chiara\mesh\skinVolume7"
+skinVolume_fileName="mesh\skinVolume7"
 scalpel_Instrument="mesh\scalpel.obj"
 # Collision particles positions
 pointPosition_onscalpel1="4 -3.7 -8.5" 
