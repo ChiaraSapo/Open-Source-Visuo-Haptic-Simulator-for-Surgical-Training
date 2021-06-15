@@ -2,6 +2,8 @@
 import Sofa
 import numpy as np
 import models 
+from SofaRuntime import Timer
+import time
 
 
 scale3d_skin="1 1 0.1"
@@ -12,15 +14,17 @@ scalpel_Instrument="mesh\scalpel.obj"
 # Collision particles positions
 pointPosition_onscalpel1="8 -7.4 -17" 
 
-
 # Choose in your script to activate or not the GUI
 USE_GUI = True
 
 def main():
     import SofaRuntime
     import Sofa.Gui
+    import Sofa.Core
+    SofaRuntime.importPlugin("SofaComponentAll")
     SofaRuntime.importPlugin("SofaOpenglVisual")
     SofaRuntime.importPlugin("SofaImplicitOdeSolver")
+    
     root = Sofa.Core.Node("root")
     addScene(root)
     Sofa.Simulation.init(root)
@@ -60,7 +64,7 @@ def createScene(root):
 
     # Define the variables
     geomagic=False
-    carving=False
+    carving=True
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
     if geomagic==True:
@@ -74,20 +78,28 @@ def createScene(root):
     ##########################################################################
 
     # Add skin
-    models.Skin(parentNode=root, name='Skin', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
-    scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 100, 100, 0.1], importFile=skinVolume_fileName, carving=carving)
+    models.Skin(parentNode=root, name='Skin', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 100, 100, 0.1], importFile=skinVolume_fileName, carving=carving)
 
     # Add Geomagic Touch
-    models.GeomagicDevice(parentNode=root, name='Omni')
+    # models.GeomagicDevice(parentNode=root, name="Omni")
     
     # Add scalpel
-    models.Instrument(parentNode=root, name='Scalpel', rotation=[0.0, 0.0, 0.0], translation=[20, 20, 30], 
-    scale3d=scale3d_scalpel,  fixingBox=None, importFile=scalpel_Instrument, pointPosition=pointPosition_onscalpel1, carving=carving, geomagic=geomagic)
+    models.Instrument(parentNode=root, name='Scalpel', rotation=[0.0, 0.0, 0.0], translation=[20, 20, 30], scale3d=scale3d_scalpel,  fixingBox=None, importFile=scalpel_Instrument, pointPosition=pointPosition_onscalpel1, carving=carving, geomagic=geomagic)
+    
+    # Add contact listener
+    #while (Timer.getRecords('Animate')!=0):
+    #IncisionListener=root.addChild("IncisionListener")
+    #models.MyContactListener(name=IncisionListener, collisionModel1=Skin.SkinColl.TriangleCollisionSkin.getLinkPath(), collisionModel2=Scalpel.InstrumentColl.SphereCollisionInstrument.getLinkPath())
+    
+    listener=root.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.Instrument.COLL)
+    #listener.init()
+    print (listener.getNumberOfContacts())
 
-
-
+ 
 
     return root
+
+
 
 
 

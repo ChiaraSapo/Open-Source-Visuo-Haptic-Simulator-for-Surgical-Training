@@ -1,7 +1,8 @@
 # Required import for python
 import Sofa
 import numpy as np
-import models 
+import Sofa.SofaDeformable
+import models
 
 
 # Data
@@ -16,6 +17,12 @@ skinVolume_fileName="C:\sofa\src\Chiara\mesh\skinVolume_thin"
 needleVolume_fileName="C:\sofa\src\Chiara\mesh\suture_needle.obj"
 threadVolume_fileName="mesh/threadCh2"
 
+# Data
+skin_youngModulus=300
+thread_youngModulus=2000
+skin_poissonRatio=0.49
+thread_poissonRatio=0.8
+
 # sphereVolume_fileName="mesh/sphere.obj"
 
 # Choose in your script to activate or not the GUI
@@ -24,10 +31,14 @@ USE_GUI = True
 def main():
     import SofaRuntime
     import Sofa.Gui
+    import Sofa.Core
+    SofaRuntime.importPlugin("SofaComponentAll")
     SofaRuntime.importPlugin("SofaOpenglVisual")
     SofaRuntime.importPlugin("SofaImplicitOdeSolver")
+
     root = Sofa.Core.Node("root")
-    addScene(root)
+    createScene(root)
+
     Sofa.Simulation.init(root)
 
     if not USE_GUI:
@@ -47,7 +58,7 @@ def createScene(root):
     root.gravity=[0, 0, -15]
     root.dt=0.01
 
-    root.addObject('RequiredPlugin', pluginName="Geomagic SofaBoundaryCondition SofaCarving SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping ")
+    root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaBoundaryCondition SofaCarving SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping ")
 
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
@@ -62,48 +73,27 @@ def createScene(root):
 
     # Constraint solver
     #root.addObject('GenericConstraintSolver')
-    root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
-
+    LCPConstraintSolver=root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
     # Define the variables
     geomagic=False
     carving=False
-
-    #################### GEOMAGIC TOUCH DEVICE ##################################################################
-    if geomagic==True:
-        root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", 
-        scale="1", drawDeviceFrame="1", drawDevice="1", positionBase="0 0 8",  orientationBase="0.707 0 0 0.707")
-    #############################################################################################################
-
-    #################### CARVING #############################################
-    if carving==True:
-        root.addObject('CarvingManager', active="true", carvingDistance="0.1")
-    ##########################################################################
 
 
     # Add skin
     models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
     scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 50, 50, 0.1], importFile=skinVolume_fileName, carving=carving)
-
-    models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[55, 0, 0], 
-    scale3d=scale3d_skin, fixingBox=[54, -0.1, -2, 106, 50, 0.1], importFile=skinVolume_fileName, carving=carving)    
-
-    # Add Geomagic Touch
-
-    models.GeomagicDevice(parentNode=root, name='Omni')
     
     # Add needle
-    if geomagic==True:
-        models.Instrument(parentNode=root, name='SutureNeedle', rotation=[0.0, 0.0, 0.0], translation="@GeomagicDevice.positionDevice", 
+    models.Instrument(parentNode=root, name='SutureNeedle', rotation=[0.0, 0.0, 0.0], translation=[25, 25, 5], 
     scale3d=scale3d_needle,  fixingBox=None, importFile=needleVolume_fileName, pointPosition=pointPosition_onNeedle, carving=carving, geomagic=geomagic)
-    else:
-        models.Instrument(parentNode=root, name='SutureNeedle', rotation=[0.0, 0.0, 0.0], translation=[25, 25, 5], 
-    scale3d=scale3d_needle,  fixingBox=None, importFile=needleVolume_fileName, pointPosition=pointPosition_onNeedle, carving=carving, geomagic=geomagic)
+   
+    #spring_force_field2 = root.addObject("StiffSpringForceField",  object1=models.Skin.MO,  object2=models.Instrument.MO)
+    #springs2 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=i, springStiffness=10, dampingFactor=5, restLength=1) for i in range(4)]
+    #spring_force_field2.addSprings(springs2)
 
-    # Add thread
-    models.Thread(parentNode=root, name='SutureThread', rotation=[90, 0, 0], translation=[-5, 60, 5], 
-    scale3d=[0.5, 0.5, 0.6],  fixingBox=None, importFile=threadVolume_fileName, geomagic=geomagic)
-
-
+    Sphere1=root.addChild('Sphere1')
+    print(str(models.Instrument.POS[70,:3]).strip('[]')) # Why is the needle position around 0 for all indices?!
+    models.sphere(parentNode=root, name=Sphere1, translation=str(models.Instrument.POS[0,:3]).strip('[]'))
 
 
     return root
