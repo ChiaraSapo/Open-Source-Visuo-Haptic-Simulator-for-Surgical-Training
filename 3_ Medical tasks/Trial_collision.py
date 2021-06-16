@@ -17,6 +17,18 @@ pointPosition_onscalpel1="8 -7.4 -17"
 # Choose in your script to activate or not the GUI
 USE_GUI = True
 
+class PrintContactController(Sofa.Core.Controller):
+
+    def __init__(self, name, rootNode):
+        Sofa.Core.Controller.__init__(self, name, rootNode)
+        self.contact_listener = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.Instrument.COLL_FRONT)
+
+    def onAnimateBeginEvent(self, event): # called at each begin of animation step
+        if self.contact_listener.getNumberOfContacts()!=0:
+            print(self.contact_listener.getContactElements())
+
+
+
 def main():
     import SofaRuntime
     import Sofa.Gui
@@ -26,7 +38,7 @@ def main():
     SofaRuntime.importPlugin("SofaImplicitOdeSolver")
     
     root = Sofa.Core.Node("root")
-    addScene(root)
+    createScene(root)
     Sofa.Simulation.init(root)
 
     if not USE_GUI:
@@ -42,6 +54,7 @@ def main():
 
 def createScene(root):
 
+    
     # Define root properties
     root.gravity=[0, 0, -9.8]
     root.dt=0.01
@@ -85,17 +98,11 @@ def createScene(root):
     
     # Add scalpel
     models.Instrument(parentNode=root, name='Scalpel', rotation=[0.0, 0.0, 0.0], translation=[20, 20, 30], scale3d=scale3d_scalpel,  fixingBox=None, importFile=scalpel_Instrument, pointPosition=pointPosition_onscalpel1, carving=carving, geomagic=geomagic)
-    
-    # Add contact listener
-    #while (Timer.getRecords('Animate')!=0):
-    #IncisionListener=root.addChild("IncisionListener")
-    #models.MyContactListener(name=IncisionListener, collisionModel1=Skin.SkinColl.TriangleCollisionSkin.getLinkPath(), collisionModel2=Scalpel.InstrumentColl.SphereCollisionInstrument.getLinkPath())
-    
-    listener=root.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.Instrument.COLL)
-    #listener.init()
-    print (listener.getNumberOfContacts())
 
- 
+    # Add contact listener
+    root.addObject(PrintContactController(name="MyController", rootNode=root))
+    #contact_listener = root.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.Instrument.COLL_FRONT)
+    #print(contact_listener.getContactElements())
 
     return root
 
