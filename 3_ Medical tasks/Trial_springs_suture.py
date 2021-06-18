@@ -23,34 +23,12 @@ thread_youngModulus=2000
 skin_poissonRatio=0.49
 thread_poissonRatio=0.8
 
-# sphereVolume_fileName="mesh/sphere.obj"
+
 
 # Choose in your script to activate or not the GUI
 USE_GUI = True
 
-class PrintContactController(Sofa.Core.Controller):
 
-    def __init__(self, name, rootNode):
-        Sofa.Core.Controller.__init__(self, name, rootNode)
-        self.contact_listener = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.Instrument.COLL_FRONT)
-        self.spring_force_field2 = rootNode.addObject("StiffSpringForceField",  object1=models.Skin.MO,  object2=models.Instrument.COLL_BACK_MO)
-        self.first=True
-
-    def onAnimateBeginEvent(self, event): # called at each begin of animation step
-
-        print(self.contact_listener.getNumberOfContacts())
-        if self.contact_listener.getNumberOfContacts()!=0:
-            #print("COLLISION!")
-            coll_indexes=self.contact_listener.getContactElements()
-            coll_indexes2=coll_indexes[0]
-            coll_index_skin=coll_indexes2[1]
-            #print(coll_indexes2)
-
-            if self.first==True:
-                self.first=False
-                # Create spring
-                springs2 = [Sofa.SofaDeformable.LinearSpring(index1=0, index2=0, springStiffness=10, dampingFactor=5, restLength=1)] # Then set to right index
-                self.spring_force_field2.addSprings(springs2)
             
             
 
@@ -100,24 +78,27 @@ def createScene(root):
 
     # Constraint solver
     LCPConstraintSolver=root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
+
     # Define the variables
     geomagic=False
     carving=True
 
     # Add skin
     models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
-    scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 50, 50, 0.1], indicesBox=[-0.1, -0.1, -2, 50, 50, 2], importFile=skinVolume_fileName, carving=carving)
+    scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 50, 50, 0.1], indicesBox=[-0.1, -0.1, -2, 50, 50, 2], 
+    importFile=skinVolume_fileName, carving=carving)
     
     # Add needle
     models.Instrument(parentNode=root, name='SutureNeedle', rotation=[0.0, 0.0, 0.0], translation=[25, 45, 5], 
-    scale3d=scale3d_needle,  fixingBox=None, importFile=needleVolume_fileName, pointPosition=pointPosition_onNeedle, carving=carving, geomagic=geomagic)
+    scale3d=scale3d_needle, fixingBox=None, importFile=needleVolume_fileName, pointPosition=pointPosition_onNeedle, 
+    carving=carving, geomagic=geomagic)
+    
+    # Add contact listener: uncomment to do stuff at animation time
+    root.addObject(models.SutureContactController(name="MyController", rootNode=root))
 
+    # sphereVolume_fileName="mesh/sphere.obj"
     #print(str(models.Instrument.POS[70,:3]).strip('[]')) # Why is the needle position around 0 for all indices?!
     #models.sphere(parentNode=root, name='Sphere1', translation=str(models.Instrument.POS[0,:3]).strip('[]'))
-
-
-    # Add contact listener: uncomment to do stuff on animation time
-    root.addObject(PrintContactController(name="MyController", rootNode=root))
 
 
     return root
