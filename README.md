@@ -12,7 +12,7 @@ Contains a pdf of the literature review for this project
 Contains a pdf with a precise description of how to install SOFA and the plugins that I used.
 ### 2_ Simulation models
 Contains code and documentation that explains what I did to build the 3D models.
-### 3_ Medical task
-Contains code that explains what I did to simulate the medical tasks.
-### 4_ GUI
-Contains code for a simple GUI that runs the simulations
+### 3_ Medical task (Work in progress)
+Contains code to simulate the medical tasks. Documentation will be added later.
+### 4_ GUI (Work in progress)
+Contains code for a simple GUI that runs the simulations. 
