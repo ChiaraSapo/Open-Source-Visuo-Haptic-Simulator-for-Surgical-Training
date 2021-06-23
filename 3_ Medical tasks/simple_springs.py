@@ -60,7 +60,7 @@ def createScene(root):
     # )
 
     # Create a StiffSpringForceField between the two planes: works and supports modifications
-    Sofa.SofaDeformable
+    #Sofa.SofaDeformable
     spring_force_field2 = root.addObject("StiffSpringForceField",object1=root.plane_1.mo.getLinkPath(),  object2=root.plane_2.mo.getLinkPath())
     springs2 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=i, springStiffness=100, dampingFactor=5, restLength=1) for i in range(8)]
     spring_force_field2.addSprings(springs2)

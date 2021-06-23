@@ -3,10 +3,11 @@ import Sofa
 import numpy as np
 import models 
 import Sofa.SofaDeformable
+import controllers
 
 
 scale3d_skin="0.5 0.5 1"
-scale3d_scalpel="2 2 2"
+scale3d_scalpel="1 1 1 "
 
 skinVolume_fileName="mesh\skinVolume_thin"
 scalpel_Instrument="mesh\scalpel.obj"
@@ -70,7 +71,7 @@ def createScene(root):
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
     if geomagic==True:
         root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", 
-        scale="1", drawDeviceFrame="1", drawDevice="1", positionBase="0 0 8",  orientationBase="0.707 0 0 0.707")
+        scale="1", drawDeviceFrame="1", drawDevice="1", positionBase="-11 5 8",  orientationBase="0.707 0 0 0.707")
     #############################################################################################################
 
     #################### CARVING #############################################
@@ -78,24 +79,25 @@ def createScene(root):
         root.addObject('CarvingManager', active="true", carvingDistance="0.1")
     ##########################################################################
 
+    
     # Add skin
     models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
     scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 50, 50, 0.1], 
-    importFile=skinVolume_fileName, carving=carving, borderBox=[49, -0.1, -2, 51, 50, 0.1])
+    importFile=skinVolume_fileName, carving=carving, borderBox=[45, -0.1, -2, 50, 50, 0.1])
 
     models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[51, 0, 0], 
-    scale3d=scale3d_skin, fixingBox=[54, -0.1, -2, 101, 50, 0.1],
-    importFile=skinVolume_fileName, carving=carving, borderBox=[53, -0.1, -2, 55, 50, 0.1], side=1) 
+    scale3d=scale3d_skin, fixingBox=[51, -0.1, -2, 101, 50, 0.1],
+    importFile=skinVolume_fileName, carving=carving, side=1, borderBox=[51, -0.1, -2, 56, 50, 0.1]) 
 
     # Add Geomagic Touch
-    # models.GeomagicDevice(parentNode=root, name='Omni')
+    models.GeomagicDevice(parentNode=root, name='Omni')
     
     # Add scalpel
-    models.Instrument(parentNode=root, name='Scalpel', rotation=[0.0, 0.0, 0.0], translation=[79, 30, 30], 
-    scale3d=scale3d_scalpel,  fixingBox=None, importFile=scalpel_Instrument, pointPosition=pointPosition_onscalpel1, carving=carving, geomagic=geomagic)
+    models.Scalpel(parentNode=root, name='Scalpel', rotation=[0.0, 0.0, 0.0], translation=[0, 30, 30], scale3d=scale3d_scalpel,  
+    fixingBox=None, importFile=scalpel_Instrument,  carving=carving, geomagic=geomagic)
 
     # Add contact listener: uncomment to do stuff at animation time
-    root.addObject(models.IncisionContactController(name="MyController", rootNode=root))
+    root.addObject(controllers.IncisionContactController(name="MyController", rootNode=root))
 
 
 

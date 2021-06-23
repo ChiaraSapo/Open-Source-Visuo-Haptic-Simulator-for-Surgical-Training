@@ -3,6 +3,7 @@ import Sofa
 import numpy as np
 import Sofa.SofaDeformable
 import models
+import controllers
 
 
 # Data
@@ -24,13 +25,8 @@ skin_poissonRatio=0.49
 thread_poissonRatio=0.8
 
 
-
 # Choose in your script to activate or not the GUI
 USE_GUI = True
-
-
-            
-            
 
 
 def main():
@@ -63,8 +59,8 @@ def createScene(root):
     root.gravity=[0, 0, -15]
     root.dt=0.01
 
-    root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaBoundaryCondition SofaCarving SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping ")
-
+    root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping ")
+    #root.addObject('RequiredPlugin', pluginName="SofaCarving")
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
 
@@ -81,20 +77,42 @@ def createScene(root):
 
     # Define the variables
     geomagic=False
-    carving=True
+    carving=False
+
+    #################### CARVING #############################################
+    if carving==True:
+        root.addObject('CarvingManager', active="true", carvingDistance="0.1")
+    ##########################################################################
 
     # Add skin
     models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
     scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 50, 50, 0.1], indicesBox=[-0.1, -0.1, -2, 50, 50, 2], 
     importFile=skinVolume_fileName, carving=carving)
+
+    #################### GEOMAGIC TOUCH DEVICE ##################################################################
+    if geomagic==True:
+        root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", 
+        scale="1", drawDeviceFrame="1", drawDevice="1", positionBase="-11 5 8",  orientationBase="0.707 0 0 0.707")
+        # Add Geomagic Touch
+        models.GeomagicDevice(parentNode=root, name='Omni')
     
-    # Add needle
-    models.Instrument(parentNode=root, name='SutureNeedle', rotation=[0.0, 0.0, 0.0], translation=[25, 45, 5], 
-    scale3d=scale3d_needle, fixingBox=None, importFile=needleVolume_fileName, pointPosition=pointPosition_onNeedle, 
-    carving=carving, geomagic=geomagic)
+        # Add needle
+        models.SutureNeedleGeo(parentNode=root, name='SutureNeedle', rotation=[0.0, 0.0, 0.0], translation=[25, 45, 5],     
+        scale3d=scale3d_needle, fixingBox=None, importFile=needleVolume_fileName, carving=carving, geomagic=geomagic)
+    #############################################################################################################
+
+    else:
+        # Add needle
+        models.SutureNeedle(parentNode=root, name='SutureNeedle', rotation=[0.0, 0.0, 0.0], translation=[25, 45, 5],     
+        scale3d=scale3d_needle, fixingBox=None, importFile=needleVolume_fileName, carving=carving, geomagic=geomagic)
+
+    # Add thread
+    # models.Thread(parentNode=root, name='SutureThread', rotation=[90, 0, 0], translation=[-5, 60, 5], 
+    # scale3d=[0.5, 0.5, 0.6],  fixingBox=None, importFile=threadVolume_fileName, geomagic=geomagic)
+
     
     # Add contact listener: uncomment to do stuff at animation time
-    root.addObject(models.SutureContactController(name="MyController", rootNode=root))
+    root.addObject(controllers.SutureContactController(name="MyController", rootNode=root))
 
     # sphereVolume_fileName="mesh/sphere.obj"
     #print(str(models.Instrument.POS[70,:3]).strip('[]')) # Why is the needle position around 0 for all indices?!
