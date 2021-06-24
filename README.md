@@ -1,8 +1,11 @@
 # Surgery simulation on SOFA Framework
-Dependencies:
+Software:
 - Sofa v20.12.02 built from sources (to use the Geomagic plugin)
 - SofaPython3 plugin
 - Geomagic plugin
+- Tkinter, Pillow for GUI
+
+Hardware:
 - Geomagic Touch Device 
 
 ## Folders
