@@ -90,11 +90,11 @@ def createScene(root):
     # Add skin
     models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
     scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 50, 50, 0.1], 
-    importFile=skinVolume_fileName, carving=carving, borderBox=[45, -0.1, -2, 50, 50, 1])
+    importFile=skinVolume_fileName, carving=carving, borderBox=[45, -0.1, -2, 50, 50, 1], task="Suture")
 
     models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[51, 0, 0], 
     scale3d=scale3d_skin, fixingBox=[51, -0.1, -2, 101, 50, 0.1],
-    importFile=skinVolume_fileName, carving=carving, side=1, borderBox=[51, -0.1, -2, 56, 50, 1]) 
+    importFile=skinVolume_fileName, carving=carving, side=1, borderBox=[51, -0.1, -2, 56, 50, 1], task="Suture") 
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
     if geomagic==True:
@@ -117,7 +117,7 @@ def createScene(root):
     scale3d=[0.5, 0.5, 0.6],  fixingBox=None, importFile=threadVolume_fileName, geomagic=geomagic)
 
     # Add contact listener
-    root.addObject(controllers.Trial(name="MyController", rootNode=root))
+    root.addObject(controllers.SutureTrainingContactController(name="MyController", rootNode=root))
 
     # Add training spheres: add when necessary
     models.sphere(parentNode=root, name="Sphere1", translation=[49, 10.0, 0.0], scale3d="1.5 1.5 1.5", color="0.0 0.5 0.0")

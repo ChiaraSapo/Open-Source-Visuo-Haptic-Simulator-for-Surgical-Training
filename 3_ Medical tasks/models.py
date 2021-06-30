@@ -14,7 +14,7 @@ thread_poissonRatio=0.8
 
 def Skin(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
 scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], indicesBox=[0.0, 0.0, 0.0], borderBox=[0.0, 0.0, 0.0], importFile=None, 
-carving=False, side=0):
+carving=False, side=0, task=None):
 
     name=parentNode.addChild(name)
     
@@ -45,11 +45,12 @@ carving=False, side=0):
 
     # Border box
     name.addObject('BoxROI', name='borderBox', box=borderBox, drawBoxes='true')
-
-    name.addObject('BoxROI', name='sphere1Box', box=[49-3, 10-3, -0.1, 49+3, 10+3, 1.5], drawBoxes='true', computeTriangles='true')
-    name.addObject('BoxROI', name='sphere2Box', box=[49-3, 30-3, -0.1, 49+3, 30+3, 1.5], drawBoxes='true', computeTriangles='true')
-    name.addObject('BoxROI', name='sphere3Box', box=[52-3, 20-3, -0.1, 52+3, 20+3, 1.5], drawBoxes='true', computeTriangles='true')
-    name.addObject('BoxROI', name='sphere4Box', box=[52-3, 40-3, -0.1, 52+3, 40+3, 1.5], drawBoxes='true', computeTriangles='true')  
+    
+    if task=="Suture":
+        name.addObject('BoxROI', name='sphere1Box', box=[49-3, 10-3, -0.1, 49+3, 10+3, 1.5], drawBoxes='true', computeTriangles='true')
+        name.addObject('BoxROI', name='sphere2Box', box=[49-3, 30-3, -0.1, 49+3, 30+3, 1.5], drawBoxes='true', computeTriangles='true')
+        name.addObject('BoxROI', name='sphere3Box', box=[52-3, 20-3, -0.1, 52+3, 20+3, 1.5], drawBoxes='true', computeTriangles='true')
+        name.addObject('BoxROI', name='sphere4Box', box=[52-3, 40-3, -0.1, 52+3, 40+3, 1.5], drawBoxes='true', computeTriangles='true')  
 
 
     #################### COLLISION ##########################
@@ -86,14 +87,16 @@ carving=False, side=0):
         Skin.MO=name.SkinMechObj.getLinkPath()
         Skin.COLL=name.SkinColl.TriangleCollisionSkin.getLinkPath()
         Skin.borderBox= name.borderBox
-        Skin.sphere1Box=name.sphere1Box
-        Skin.sphere2Box=name.sphere2Box
+        if task=="Suture":
+            Skin.sphere1Box=name.sphere1Box
+            Skin.sphere2Box=name.sphere2Box
     if side==1: # right
         Skin.MO_right=name.SkinMechObj.getLinkPath()
         Skin.COLL_right=name.SkinColl.TriangleCollisionSkin.getLinkPath()
         Skin.borderBox_right = name.borderBox
-        Skin.sphere3Box=name.sphere3Box
-        Skin.sphere4Box=name.sphere4Box
+        if task=="Suture":
+            Skin.sphere3Box=name.sphere3Box
+            Skin.sphere4Box=name.sphere4Box
 
 
 
