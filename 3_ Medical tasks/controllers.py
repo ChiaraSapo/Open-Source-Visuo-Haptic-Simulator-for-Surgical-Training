@@ -3,103 +3,57 @@ import numpy as np
 import models
 import sys
 
-# TRUE Controller for incision task
-# class IncisionContactController(Sofa.Core.Controller):
 
-#     def __init__(self, name, rootNode):
-#         Sofa.Core.Controller.__init__(self, name, rootNode)
-
-#         # # Define spring force field
-#         self.spring_force_field = rootNode.addObject("StiffSpringForceField",  object1=models.Skin.MO,  object2=models.Skin.MO_right)
-#         springs = [Sofa.SofaDeformable.LinearSpring(index1=40, index2=78, springStiffness=100, dampingFactor=5, restLength=1)] # Then set to right index
-#         self.spring_force_field.addSprings(springs)
-#         self.first=1
-        
-#         # Define contact listeners
-#         self.contact_listener = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.Scalpel.COLL_FRONT)
-#         self.contact_listener_right = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL_right, collisionModel2 = models.Scalpel.COLL_FRONT)
-#         self.indexes=[(0, 0, 0, 0)]
-
-#     def onAnimateBeginEvent(self, event): # called at each begin of animation step
-        
-#         if self.first==1:
-#             # IndicesLeft=models.Skin.borderBox.findData('indices').value
-#             # IndicesRight=models.Skin.borderBox_right.findData('indices').value
-#             # N_indices=sys.getsizeof(IndicesRight)
-            
-#             #print("Indices in Left Box:", models.Skin.borderBox.findData('indices').value)
-#             #print("Indices in Right Box:", models.Skin.borderBox_right.findData('indices').value)
-#             self.first=0
-#             # Define spring force field
-
-#             # self.spring_force_field = rootNode.addObject("StiffSpringForceField",  object1=models.Skin.MO,  object2=models.Skin.MO_right)
-#             # springs = [Sofa.SofaDeformable.LinearSpring(index1=1, index2=1, springStiffness=100, dampingFactor=5, restLength=1)] # Then set to right index
-#             # self.spring_force_field.addSprings(springs)
-
-#         # If there is a contact between skin left or skin right (note: while is useless, this already loops)
-#         if self.contact_listener.getNumberOfContacts()!=0 or self.contact_listener_right.getNumberOfContacts()!=0:
-
-#             # If contact point is different from before
-#             if self.indexes != self.contact_listener.getContactElements():
-
-#                 # Remove spring
-#                 self.spring_force_field.removeSpring(0)
-#                 self.indexes = self.contact_listener.getContactElements() # Then set to right index
-
-
-
-
-
-
-# TRIAL Controller for incision task
+# Controller for incision task
 class IncisionContactController(Sofa.Core.Controller):
 
     def __init__(self, name, rootNode):
         Sofa.Core.Controller.__init__(self, name, rootNode)
 
-        
-        
-        
-        # Define contact listeners
+        # Define contact listeners for right and left skins
         self.contact_listener = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.Scalpel.COLL_FRONT)
         self.contact_listener_right = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL_right, collisionModel2 = models.Scalpel.COLL_FRONT)
 
         self.spring_force_field = rootNode.addObject("StiffSpringForceField",  object1=models.Skin.MO,  object2=models.Skin.MO_right)
 
         self.first=True
+        self.first_coll=True
+        self.indexes=0
 
     def onAnimateBeginEvent(self, event): # called at each begin of animation step
         
         if self.first==True:
-
-            IndicesLeft=models.Skin.borderBox.findData('indices').value
-            IndicesRight=models.Skin.borderBox_right.findData('indices').value
+            # Uncomment to recompute
+            #IndicesLeft=models.Skin.borderBox.findData('indices').value
+            #print(IndicesLeft)
+            #IndicesRight=models.Skin.borderBox_right.findData('indices').value
+            #print(IndicesRight)
+            IndicesLeft=[ 5,  7, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+            IndicesRight=[ 1,  3, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
             N_indices=sys.getsizeof(IndicesRight)
-            print(N_indices)
-
 
             self.first=False
 
-            # Define spring force field
-            # Se indicizzo: muore tutto
-            springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=100, dampingFactor=5, restLength=1) for i, j in zip(IndicesLeft,IndicesRight)] # Then set to right index
+            # Define spring force field: there should be more springs though
+            springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=100, dampingFactor=5, restLength=0.001) for i, j in zip(IndicesLeft,IndicesRight)] # Then set to right index
             self.spring_force_field.addSprings(springs)
-            
-            #print("Indices in Left Box:", models.Skin.borderBox.findData('indices').value)
-            #print("Indices in Right Box:", models.Skin.borderBox_right.findData('indices').value)
-            
-            # Define spring force field
 
 
         # If there is a contact between skin left or skin right (note: while is useless, this already loops)
-        if self.contact_listener.getNumberOfContacts()!=0 or self.contact_listener_right.getNumberOfContacts()!=0:
+        if (self.contact_listener.getNumberOfContacts()!=0 or self.contact_listener_right.getNumberOfContacts()!=0) and self.first_coll==True:
+            
+            print("COLLISION!")
 
             # If contact point is different from before
             if self.indexes != self.contact_listener.getContactElements():
 
                 # Remove spring
-                self.spring_force_field.removeSpring(0)
-                self.indexes = self.contact_listener.getContactElements() # Then set to right index
+                self.spring_force_field.removeSpring(2)
+
+                self.indexes = self.contact_listener.getContactElements() 
+                self.first_coll=False
+
+
 
 
 # Controller for suture task
@@ -108,29 +62,25 @@ class SutureContactController(Sofa.Core.Controller):
     def __init__(self, name, rootNode):
         Sofa.Core.Controller.__init__(self, name, rootNode)
         
-        
         # Define spring force field
+
         self.spring_force_field = rootNode.addObject("StiffSpringForceField",  object1 = models.Skin.MO,  object2=models.SutureNeedle.COLL_BACK_MO)
 
         # Define contact listener
         self.contact_listener = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.SutureNeedle.COLL_FRONT)
+        self.contact_listener_right = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL_right, collisionModel2 = models.SutureNeedle.COLL_FRONT)
         self.first=True
 
     def onAnimateBeginEvent(self, event): # called at each begin of animation step
 
-        #print("Indices in ROI", models.Skin.aa.findData('indices').value)
-        #print("Triangle indices in ROI", models.Skin.aa.findData('triangleIndices').value)
-        print("Indices in ROI", models.Skin.aa.findData('indices').value)
         # If there is a contact between skin and instrument and it is the first detection
         
-        if self.contact_listener.getNumberOfContacts()!=0 and self.first==True:
-
-            #print("Triangle indices in ROI", models.Skin.aa.findData('triangleIndices').value)
+        if (self.contact_listener.getNumberOfContacts()!=0 or self.contact_listener_right.getNumberOfContacts()!=0) and self.first==True:
             
             print("COLLISION!")
 
             # Retrieve the skin indexes that are in contact
-            coll_indexes=self.contact_listener.getContactElements()
+            coll_indexes=self.contact_listener.getContactElements() # then set to one of the 2 contact listeners
             coll_indexes2=coll_indexes[0]
             coll_index_skin=coll_indexes2[1]
             print("The triangle index is:", coll_index_skin)
@@ -139,5 +89,108 @@ class SutureContactController(Sofa.Core.Controller):
             self.first=False
 
             # Create spring
-            springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=0, springStiffness=10, dampingFactor=5, restLength=1) for i in range(10)] # Then set to right index
+            springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=0, springStiffness=50, dampingFactor=5, restLength=1) for i in range(10)] 
             self.spring_force_field.addSprings(springs)
+
+
+# Controller for suture task training
+class SutureTrainingContactController(Sofa.Core.Controller):
+
+    def __init__(self, name, rootNode):
+        Sofa.Core.Controller.__init__(self, name, rootNode)
+        
+        # Define spring force field
+
+        self.spring_force_field = rootNode.addObject("StiffSpringForceField",  object1 = models.Skin.MO,  object2=models.SutureNeedle.COLL_BACK_MO)
+
+        # Define contact listener
+        self.contact_listener = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.SutureNeedle.COLL_FRONT)
+        self.contact_listener_right = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL_right, collisionModel2 = models.SutureNeedle.COLL_FRONT)
+
+        self.first=True
+
+        self.sphereColor="1.0 0.5 0.0"
+        self.sphereScale3d="2 2 2"
+        self.root=rootNode
+
+    def onAnimateBeginEvent(self, event): # called at each begin of animation step
+
+        # If there is a contact between skin and instrument and it is the first detection
+
+        if self.contact_listener.getNumberOfContacts()!=0 and self.first==True:
+            
+            print("COLLISION Left!")
+
+            # Retrieve the skin indexes that are in contact
+            coll_indexes=self.contact_listener.getContactElements() 
+            coll_indexes2=coll_indexes[0]
+            coll_index_skin=coll_indexes2[1]
+            print("The triangle index is:", coll_index_skin)
+
+            if coll_index_skin in models.Skin.sphere1Box.findData('triangleIndices').value:
+                print("COLLISION 1!")
+                models.sphere(parentNode=self.root, name="Sphere12", translation=[49, 10.0, 0.0], scale3d=self.sphereScale3d, color=self.sphereColor)
+
+            elif coll_index_skin in models.Skin.sphere2Box.findData('triangleIndices').value:
+                print("COLLISION 2!")
+                models.sphere(parentNode=self.root, name="Sphere22", translation=[49, 30.0, 0.0], scale3d=self.sphereScale3d, color=self.sphereColor)
+
+            else:
+                print("nothing")
+
+            # Set first to False
+            self.first=False
+
+            # Create spring
+            springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=0, springStiffness=50, dampingFactor=5, restLength=1) for i in range(10)] 
+            self.spring_force_field.addSprings(springs)
+
+        if self.contact_listener_right.getNumberOfContacts()!=0 and self.first==True:
+            
+            print("COLLISION Right!")
+
+            # Retrieve the skin indexes that are in contact
+            coll_indexes=self.contact_listener_right.getContactElements() 
+            coll_indexes2=coll_indexes[0]
+            coll_index_skin=coll_indexes2[1]
+            print("The triangle index is:", coll_index_skin)
+           
+            if coll_index_skin in models.Skin.sphere3Box.findData('triangleIndices').value:
+                print("COLLISION 3!")
+                models.sphere(parentNode=self.root, name="Sphere32", translation=[52, 20.0, 0.0], scale3d=self.sphereScale3d, color=self.sphereColor)
+
+            elif coll_index_skin in models.Skin.sphere4Box.findData('triangleIndices').value:
+                print("COLLISION 4!")
+                models.sphere(parentNode=self.root, name="Sphere42", translation=[52, 40.0, 0.0], scale3d=self.sphereScale3d, color=self.sphereColor)
+
+            else:
+                print("nothing")
+
+            # Set first to False
+            self.first=False
+
+            # Create spring
+            springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=0, springStiffness=50, dampingFactor=5, restLength=1) for i in range(10)] 
+            self.spring_force_field.addSprings(springs)
+
+
+
+# Trial to add a sphere in runtime
+class Trial(Sofa.Core.Controller):
+
+    def __init__(self, name, rootNode):
+        Sofa.Core.Controller.__init__(self, name, rootNode)
+
+
+        self.sphereColor="1.0 0.5 0.0"
+        self.sphereScale3d="2 2 2"
+        self.root=rootNode
+        self.first=1
+
+    def onAnimateBeginEvent(self, event): # called at each begin of animation step
+
+        # If there is a contact between skin and instrument and it is the first detection
+        if self.first==1:
+            models.sphere(parentNode=self.root, name="Sphere12", translation=[49, 10.0, 0.0], scale3d=self.sphereScale3d, color=self.sphereColor)
+            self.first=0
+

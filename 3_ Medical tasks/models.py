@@ -9,17 +9,18 @@ thread_poissonRatio=0.8
 
 # indicesBox: to retrieve indices of all points (usually a bit bigger than fixing box)
 # importFile: msh or obj file
-# borderBox: used in incision only to retrieve indices of the borders to connect
+# borderBox: used  to retrieve indices of the borders 
 # side: usually left
+
 def Skin(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
-scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], indicesBox=[0.0, 0.0, 0.0], importFile=None, 
-carving=False, borderBox=[0.0, 0.0, 0.0], side=0):
+scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], indicesBox=[0.0, 0.0, 0.0], borderBox=[0.0, 0.0, 0.0], importFile=None, 
+carving=False, side=0):
 
     name=parentNode.addChild(name)
     
     #################### BEHAVIOUR ##########################
     # Solvers
-    name.addObject('EulerImplicitSolver', name="odesolver")
+    name.addObject('EulerImplicitSolver', name="odesolver", rayleighStiffness="0.01", rayleighMass="0.01") #added  2 params
     name.addObject('CGLinearSolver', iterations="25", name="EpiLinearsolver", tolerance="1.0e-9", threshold="1.0e-9")
     
     # Volumetric mesh loader
@@ -31,19 +32,25 @@ carving=False, borderBox=[0.0, 0.0, 0.0], side=0):
     name.addObject('TetrahedronSetTopologyModifier')
 
     # Mechanical object and mass
-    name.addObject('MechanicalObject', name='SkinMechObj', template='Vec3d', translation=translation)#, src="@volumeLoader", position="1 1 20")
-    name.addObject('DiagonalMass', name="SkinMass", template="Vec3d,double", massDensity="1.0")
+    name.addObject('MechanicalObject', name='SkinMechObj', template='Vec3d', translation=translation)
+    name.addObject('DiagonalMass', name="SkinMass",  massDensity="5.0")#, template="Vec3d,double"
 
-    # Constraints
+    # Forces
+    name.addObject('TetrahedronFEMForceField', template='Vec3d', name='FEM', method='large', youngModulus=skin_youngModulus, poissonRatio=skin_poissonRatio)
+    name.addObject('UncoupledConstraintCorrection')#, compliance=0.001)
+
+    # Fixed box for constraints
     boxROI=name.addObject('BoxROI', name='boxROI', box=fixingBox, drawBoxes='true', computeTriangles='true')
     name.addObject('RestShapeSpringsForceField', name='rest', points='@boxROI.indices', stiffness='1e12', angularStiffness='1e12')
 
     # Border box
     name.addObject('BoxROI', name='borderBox', box=borderBox, drawBoxes='true')
 
-    # Forces
-    name.addObject('TetrahedronFEMForceField', template='Vec3d', name='FEM', method='large', youngModulus=skin_youngModulus, poissonRatio=skin_poissonRatio)
-    name.addObject('UncoupledConstraintCorrection')#, compliance=0.001)
+    name.addObject('BoxROI', name='sphere1Box', box=[49-3, 10-3, -0.1, 49+3, 10+3, 1.5], drawBoxes='true', computeTriangles='true')
+    name.addObject('BoxROI', name='sphere2Box', box=[49-3, 30-3, -0.1, 49+3, 30+3, 1.5], drawBoxes='true', computeTriangles='true')
+    name.addObject('BoxROI', name='sphere3Box', box=[52-3, 20-3, -0.1, 52+3, 20+3, 1.5], drawBoxes='true', computeTriangles='true')
+    name.addObject('BoxROI', name='sphere4Box', box=[52-3, 40-3, -0.1, 52+3, 40+3, 1.5], drawBoxes='true', computeTriangles='true')  
+
 
     #################### COLLISION ##########################
 
@@ -54,6 +61,7 @@ carving=False, borderBox=[0.0, 0.0, 0.0], side=0):
     SkinColl.addObject('TriangleSetTopologyModifier', name="T_Modifier")
     SkinColl.addObject('TriangleSetGeometryAlgorithms', template="Vec3d", name="T_GeomAlgo")
     SkinColl.addObject('Tetra2TriangleTopologicalMapping', name="default8", input="@../TetraContainer", output="@T_Container")
+    #SkinColl.addObject('MechanicalObject', template="Vec3d")
 
     # Types of collision
     if carving==True:
@@ -62,7 +70,7 @@ carving=False, borderBox=[0.0, 0.0, 0.0], side=0):
         SkinColl.addObject('TriangleCollisionModel', name="TriangleCollisionSkin")
     SkinColl.addObject('LineCollisionModel', name="LineCollisionSkin")
     SkinColl.addObject('PointCollisionModel', name="PointCollisionSkin") 
-
+    #SkinColl.addObject('IdentityMapping')
 
     #################### VISUALIZATION ########################
     
@@ -70,29 +78,24 @@ carving=False, borderBox=[0.0, 0.0, 0.0], side=0):
     SkinVisu.addObject('MechanicalObject', name="VisuMO")
     SkinVisu.addObject('OglModel', template="Vec3d", name="Visual", color="1 0.75 0.796", 
     material="Default Diffuse 1 0 0 1 1 Ambient 1 0 0 0.2 1 Specular 0 0 0 1 1 Emissive 0 0 0 1 1 Shininess 0 45 ")
-    SkinVisu.addObject('IdentityMapping', template="Vec3d,Vec3d", name="default12", input="@..", output="@Visual" )
-    #SkinVisu.addObject('BoxROI', name='indicesBoxROI', box=indicesBox, drawBoxes='true')
-    #print(name.SkinColl.SkinVisu.indicesBoxROI.isPointInBoxes())
-    #SkinVisu.addObject('MeshBoundaryROI',template="Vec3d", position="@VisuMO.position" )
-    #MeshBoundaryROI
+    SkinVisu.addObject('BarycentricMapping', template="Vec3d,Vec3d", name="default12", input="@..", output="@Visual" ) # Tried now
+    #SkinVisu.addObject('IdentityMapping', template="Vec3d,Vec3d", name="default12", input="@..", output="@Visual" )
 
     # Data
-    if side==0:
+    if side==0: # left
         Skin.MO=name.SkinMechObj.getLinkPath()
         Skin.COLL=name.SkinColl.TriangleCollisionSkin.getLinkPath()
         Skin.borderBox= name.borderBox
-    if side==1:
+        Skin.sphere1Box=name.sphere1Box
+        Skin.sphere2Box=name.sphere2Box
+    if side==1: # right
         Skin.MO_right=name.SkinMechObj.getLinkPath()
         Skin.COLL_right=name.SkinColl.TriangleCollisionSkin.getLinkPath()
         Skin.borderBox_right = name.borderBox
-    #Skin.BoxIndexes_P=name.SkinColl.SkinVisu.indicesBoxROI.findData('triangleIndices').value
-    #Skin.BoxIndexes_T=name.SkinColl.SkinVisu.indicesBoxROI.findData('indices').value
+        Skin.sphere3Box=name.sphere3Box
+        Skin.sphere4Box=name.sphere4Box
 
-    
-    Skin.aa = name.boxROI
-    #Skin.ac= name.boxROI.findData('pointsInROI')
-    #Skin.ad= name.boxROI.findData('pointsInROI').value
-    #Skin.ae=name.rest.findData('points').value
+
 
 
 
@@ -117,8 +120,8 @@ scale3d=[0.0, 0.0, 0.0], fixingBox=[0.0, 0.0, 0.0], importFile=None, geomagic=Fa
     # Mechanical object and mass
     if geomagic==True:
         name.addObject('MechanicalObject', name='ThreadMechObject', template='Vec3d', position="@GeomagicDevice.positionDevice", scale3d=scale3d, rotation="0 0 0" )
-        name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-        name.addObject('LCPForceFeedback', name="LCPFF1", activate="true", forceCoef="0.5")
+        name.addObject('RestShapeSpringsForceField', name="ThreadRest", stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
+        #name.addObject('LCPForceFeedback', name="LCPFFThread", activate="true", forceCoef="0.5")
     else:
         name.addObject('MechanicalObject', name='ThreadMechObject', template='Vec3d')
     
@@ -146,35 +149,37 @@ def GeomagicDevice(parentNode=None, name=None):
     name=parentNode.addChild(name)
     name.addObject('MechanicalObject', template="Rigid3", name="DOFs", position="@GeomagicDevice.positionDevice")
     name.addObject('MechanicalStateController', template="Rigid3", listening="true", mainDirection="-1.0 0.0 0.0")
-    #GeomagicDevice.DOFS=name.DOFs.getLinkPath()
-    #print(GeomagicDevice.DOFS)
+
     
 
-# Good for the needle... (BEST VERSION I THINK), but without carving the object falls under skin a part from collision point...
 def SutureNeedle(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0],
 scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=False, geomagic=False):
 
-    
     #################### BEHAVIOUR ##########################
     name=parentNode.addChild(name)
     name.addObject('EulerImplicitSolver', name='ODE solver', rayleighStiffness="0.01", rayleighMass="1.0")
     name.addObject('CGLinearSolver', name='linear solver', iterations="25", tolerance="1e-7", threshold="1e-7")
     name.addObject('MeshObjLoader', name='instrumentMeshLoader', filename=importFile)
 
-    name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentMechObject', template='Rigid3d', translation=translation, scale3d=scale3d)
-    
+    if geomagic==True:
+        name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d=scale3d, rotation="0 0 10" )
+        name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
+        name.addObject('LCPForceFeedback', name="LCPFFNeedle", activate="true", forceCoef="0.5")
+    else: 
+        name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentMechObject', template='Rigid3d', translation=translation, scale3d=scale3d)
+
     name.addObject('UniformMass', name='mass', totalMass="5") 
     # With mass=1: [WARNING] [CGLinearSolver(linear solver)] denominator threshold reached at first iteration of CG. 
     # Check the 'threshold' data field, you might decrease it
     name.addObject('UncoupledConstraintCorrection')
 
-
-
     #################### COLLISION ##########################
     
     InstrumentColl_Front = name.addChild('InstrumentColl_Front')
- 
-    InstrumentColl_Front.addObject('MechanicalObject', template="Vec3d", name="Particle", position="-6.98 0.02 0.05")
+    if geomagic==True:
+        InstrumentColl_Front.addObject('MechanicalObject', template="Vec3d", name="Particle", position="-6.98 0.02 0.05", rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0")
+    else:
+        InstrumentColl_Front.addObject('MechanicalObject', template="Vec3d", name="Particle", position="-6.98 0.02 0.05")
 
     if carving==True:
         InstrumentColl_Front.addObject('SphereCollisionModel', radius="1", name="SphereCollisionInstrument", contactStiffness="2", tags="CarvingTool")
@@ -184,8 +189,10 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=F
 
     InstrumentColl_Back = name.addChild('InstrumentColl_Back')
 
-
-    InstrumentColl_Back.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0.02 0.05")
+    if geomagic==True:
+        InstrumentColl_Back.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0.02 0.05", rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0")
+    else:
+        InstrumentColl_Back.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0.02 0.05")
 
     if carving==True:
         InstrumentColl_Back.addObject('SphereCollisionModel', radius="1", name="SphereCollisionInstrument2", contactStiffness="2", tags="CarvingTool")
@@ -196,9 +203,10 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=F
     #################### VISUALIZATION ########################
     
     InstrumentVisu = name.addChild('InstrumentVisu')
-
-    InstrumentVisu.addObject('OglModel', name='InstrumentVisualModel', src='@../instrumentMeshLoader', scale3d=scale3d,  color="0 0.5 0.796")
-
+    if geomagic==True:
+        InstrumentVisu.addObject('OglModel', name='InstrumentVisualModel', src='@../instrumentMeshLoader', scale3d=scale3d, rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0",  color="0 0.5 0.796")
+    else:
+        InstrumentVisu.addObject('OglModel', name='InstrumentVisualModel', src='@../instrumentMeshLoader', scale3d=scale3d,  color="0 0.5 0.796")
     InstrumentVisu.addObject('RigidMapping', template="Rigid3d,Vec3d", name='MM-VM mapping', input='@../InstrumentMechObject', output='@InstrumentVisualModel')
 
     # Data
@@ -208,64 +216,10 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=F
     SutureNeedle.COLL_FRONT=name.InstrumentColl_Front.SphereCollisionInstrument.getLinkPath()
     SutureNeedle.COLL_BACK=name.InstrumentColl_Back.SphereCollisionInstrument2.getLinkPath()
     
-def SutureNeedleGeo(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0],
-scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=False, geomagic=False):
-
-    
-    #################### BEHAVIOUR ##########################
-    name=parentNode.addChild(name)
-    name.addObject('EulerImplicitSolver', name='ODE solver', rayleighStiffness="0.01", rayleighMass="1.0")
-    name.addObject('CGLinearSolver', name='linear solver', iterations="25", tolerance="1e-7", threshold="1e-7")
-    name.addObject('MeshObjLoader', name='instrumentMeshLoader', filename=importFile)
-
-    name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d=scale3d, rotation="0 0 10" )
-    name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-    name.addObject('LCPForceFeedback', name="LCPFF1", activate="true", forceCoef="0.5")
-
-    name.addObject('UniformMass', name='mass', totalMass="1")
-    name.addObject('UncoupledConstraintCorrection')
-
-    #################### COLLISION ##########################
-    
-    InstrumentColl_Front = name.addChild('InstrumentColl_Front')
-
-    InstrumentColl_Front.addObject('MechanicalObject', template="Vec3d", name="Particle", position="-6.98 0.02 0.05", rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0")
-
-    if carving==True:
-        InstrumentColl_Front.addObject('SphereCollisionModel', radius="1", name="SphereCollisionInstrument", contactStiffness="2", tags="CarvingTool")
-    else:
-        InstrumentColl_Front.addObject('SphereCollisionModel', radius="1", name="SphereCollisionInstrument", contactStiffness="2")
-    InstrumentColl_Front.addObject('RigidMapping', template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
-
-    InstrumentColl_Back = name.addChild('InstrumentColl_Back')
 
 
-    InstrumentColl_Back.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0.02 0.05", rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0")
-    
-    if carving==True:
-        InstrumentColl_Back.addObject('SphereCollisionModel', radius="1", name="SphereCollisionInstrument2", contactStiffness="2", tags="CarvingTool")
-    else:
-        InstrumentColl_Back.addObject('SphereCollisionModel', radius="1", name="SphereCollisionInstrument2", contactStiffness="2")
-    InstrumentColl_Back.addObject('RigidMapping', template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
-
-    #################### VISUALIZATION ########################
-    
-    InstrumentVisu = name.addChild('InstrumentVisu')
-
-    InstrumentVisu.addObject('OglModel', name='InstrumentVisualModel', src='@../instrumentMeshLoader', scale3d=scale3d, rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0",  color="0 0.5 0.796")
-
-    InstrumentVisu.addObject('RigidMapping', template="Rigid3d,Vec3d", name='MM-VM mapping', input='@../InstrumentMechObject', output='@InstrumentVisualModel')
-
-    # Data
-    SutureNeedleGeo.MO=name.InstrumentMechObject.getLinkPath()
-    SutureNeedleGeo.COLL_BACK_MO=name.InstrumentColl_Back.Particle2.getLinkPath()
-    SutureNeedleGeo.POS=name.InstrumentMechObject.findData('position').value
-    SutureNeedleGeo.COLL_FRONT=name.InstrumentColl_Front.SphereCollisionInstrument.getLinkPath()
-    SutureNeedleGeo.COLL_BACK=name.InstrumentColl_Back.SphereCollisionInstrument2.getLinkPath()
-    
 
 
-# Good for the needle... (BEST VERSION I THINK), but without carving the object falls under skin a part from collision point...
 def Scalpel(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0],
 scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None, carving=False, geomagic=False):
 
@@ -277,7 +231,7 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None, carving=Fa
     if geomagic==True:
         name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d=scale3d, dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
         name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-        name.addObject('LCPForceFeedback', name="LCPFF1", activate="true", forceCoef="0.5")
+        name.addObject('LCPForceFeedback', name="LCPFFScalpel", activate="true", forceCoef="0.5")
     else:
         name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentMechObject', template='Rigid3d', translation=translation, scale3d=scale3d)
     
@@ -287,7 +241,6 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None, carving=Fa
     #################### COLLISION ##########################
     
     InstrumentColl_Front = name.addChild('InstrumentColl_Front')
-    
     InstrumentColl_Front.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5" , dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
 
     if carving==True:
@@ -317,74 +270,30 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None, carving=Fa
     Scalpel.COLL_FRONT=name.InstrumentColl_Front.SphereCollisionInstrument.getLinkPath()
     
 
-# Good for the scalpel, but has a lot of collision points...
-def Instrument2(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
-scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None, pointPosition=None, carving=False, geomagic=False):
-    name=parentNode.addChild(name)
-    
-    name.addObject('EulerImplicitSolver', name='ODE solver', rayleighStiffness="0.01", rayleighMass="1.0")
-    name.addObject('CGLinearSolver', name='linear solver', iterations="25", tolerance="1e-7", threshold="1e-7")
-    if geomagic==True: #not sure
-        name.addObject('MeshObjLoader', name='instrumentMeshLoader', filename=importFile, scale3d=scale3d) 
-        name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='mechObject', position=translation, template='Rigid3d')
-        name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-        name.addObject('LCPForceFeedback', name="LCPFF1", activate="true", forceCoef="0.5")
-    else:
-        name.addObject('MeshObjLoader', name='instrumentMeshLoader', filename=importFile, translation=translation, scale3d=scale3d)
-        name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='mechObject', template='Rigid3d')
-    name.addObject('UniformMass', name='mass', totalMass="2")
-    name.addObject('UncoupledConstraintCorrection')
-
-    #################### VISUALIZATION ########################
-    
-    InstrumentVisu = name.addChild('InstrumentVisu')
-    InstrumentVisu.addObject('OglModel', name='InstrumentVisualModel', src='@../instrumentMeshLoader', color="0 0.5 0.796")
-    InstrumentVisu.addObject('IdentityMapping', name='MM-VM mapping', input='@../mechObject', output='@InstrumentVisualModel')
-
-    #################### COLLISION ##########################
-    
-    InstrumentColl = name.addChild('InstrumentColl')
-    InstrumentColl.addObject('MechanicalObject', template="Vec3d", name="Particle", position=pointPosition)
-    if carving==True:
-        InstrumentColl.addObject('SphereCollisionModel', radius=0.4, name="SphereCollisionInstrument", contactStiffness="2", tags="CarvingTool")
-    else:
-        InstrumentColl.addObject('SphereCollisionModel', radius=0.4, name="SphereCollisionInstrument", contactStiffness="2")
-
-    InstrumentColl.addObject('IdentityMapping', name="MM->CM mapping",  input="@../mechObject",  output="@Particle")
-
-
-
-
+# Contact listener 
 def MyContactListener(parentNode=None, name=None, collisionModel1=None, collisionModel2=None):
     name=parentNode.addChild(name)
     listener=name.addObject('ContactListener', collisionModel1 = collisionModel1, collisionModel2 = collisionModel2)
     print(listener.getNumberOfContacts())
 
-def sphere(parentNode=None, name=None, translation=[0.0, 0.0, 0.0]):
+
+# Training sphere
+def sphere(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0]):
+
     name=parentNode.addChild(name)
-    name.addObject('MechanicalObject', name='sphereMechObj', template='Vec3d', position=translation)
-    name.addObject('SphereCollisionModel', radius="2", name="SphereCollisionInstrument", contactStiffness="2")
-
-    # Data
-    sphere.MO=name.sphereMechObj.getLinkPath()
+    name.addObject('MeshObjLoader', name='sphere', filename="C:\sofa\src\Chiara\mesh\sphere.obj") 
+    name.addObject('OglModel', name='InstrumentVisualModel', src='@sphere', scale3d="1.5 1.5 1.5", translation=translation, color=color)
+   
 
 
-    #################### BEHAVIOUR ##########################
-    # importFile="C:\sofa\src\Chiara\mesh\sphere"
-    # name.addObject('EulerImplicitSolver', name='ODE solver', rayleighStiffness="0.01", rayleighMass="1.0")
-    # name.addObject('CGLinearSolver', name='linear solver', iterations="25", tolerance="1e-7", threshold="1e-7")
-    # name.addObject('MeshGmshLoader', name='instrumentMeshLoader', filename=importFile)
-    # name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentmechObject', template='Vec3d', translation=translation, scale3d="0.1 0.1 0.1")
-    # name.addObject('UniformMass', name='mass', totalMass="5")
-    # name.addObject('UncoupledConstraintCorrection')
 
-    # #################### COLLISION ##########################
-    # SphereColl = name.addChild('SphereColl')
-    # name.addObject('MeshGmshLoader', name='instrumentMeshLoader', filename=importFile)
-    # name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentmechObject', template='Vec3d', translation=translation, scale3d="0.1 0.1 0.1")
-    # SphereColl.addObject('MechanicalObject', template="Vec3d", name="Particle")
-    # SphereColl.addObject('SphereCollisionModel', radius="2", name="SphereCollisionInstrument", contactStiffness="2")
-    # SphereColl.addObject('IdentityMapping', name="MM->CM mapping",  input="@../InstrumentmechObject",  output="@Particle")
+
+
+   
+
+
+
+
 
     
 ################# Three layered skin ############################
