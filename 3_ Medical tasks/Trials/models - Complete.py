@@ -14,7 +14,7 @@ thread_poissonRatio=0.8
 
 def Skin(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
 scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], indicesBox=[0.0, 0.0, 0.0], borderBox=[0.0, 0.0, 0.0], importFile=None, 
-carving=False, side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.0, 0.0],borderBox3=[0.0, 0.0, 0.0],borderBox4=[0.0, 0.0, 0.0]):
+carving=False, side=0, task=None):
 
     name=parentNode.addChild(name)
     
@@ -48,17 +48,11 @@ carving=False, side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.
     # Border box
     name.addObject('BoxROI', name='borderBox', box=borderBox, drawBoxes='true')
     
-    if task=="Incision":
-        name.addObject('BoxROI', name='borderBox1', box=borderBox1, drawBoxes='true')
-        name.addObject('BoxROI', name='borderBox2', box=borderBox2, drawBoxes='true')
-        name.addObject('BoxROI', name='borderBox3', box=borderBox3, drawBoxes='true')
-        name.addObject('BoxROI', name='borderBox4', box=borderBox4, drawBoxes='true')
-
     if task=="Suture":
-        name.addObject('BoxROI', name='sphere1Box', box=[8-1, 3-1, -0.1, 8+1, 3+1, 3], drawBoxes='true', computeTriangles='true')
-        name.addObject('BoxROI', name='sphere2Box', box=[8-1, 13-1, -0.1, 8+1, 13+1, 3], drawBoxes='true', computeTriangles='true')
-        name.addObject('BoxROI', name='sphere3Box', box=[12-1, 7-1, -0.1, 12+1, 7+1, 3], drawBoxes='true', computeTriangles='true')
-        name.addObject('BoxROI', name='sphere4Box', box=[12-1, 17-1, -0.1, 12+1, 17+1, 3], drawBoxes='true', computeTriangles='true')  
+        name.addObject('BoxROI', name='sphere1Box', box=[8-1, 3-1, -0.1, 8+1, 3+1, 1.5], drawBoxes='true', computeTriangles='true')
+        name.addObject('BoxROI', name='sphere2Box', box=[8-1, 13-1, -0.1, 8+1, 13+1, 1.5], drawBoxes='true', computeTriangles='true')
+        name.addObject('BoxROI', name='sphere3Box', box=[12-1, 7-1, -0.1, 12+1, 7+1, 1.5], drawBoxes='true', computeTriangles='true')
+        name.addObject('BoxROI', name='sphere4Box', box=[12-1, 17-1, -0.1, 12+1, 17+1, 1.5], drawBoxes='true', computeTriangles='true')  
 
 
 
@@ -89,38 +83,24 @@ carving=False, side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.
     SkinVisu.addObject('MechanicalObject', name="VisuMO")
     SkinVisu.addObject('OglModel', template="Vec3d", name="Visual", color="1 0.75 0.796", 
     material="Default Diffuse 1 0 0 1 1 Ambient 1 0 0 0.2 1 Specular 0 0 0 1 1 Emissive 0 0 0 1 1 Shininess 0 45 ")
-    #SkinVisu.addObject('BarycentricMapping', template="Vec3d,Vec3d", name="default12", input="@..", output="@Visual" ) # For grids
+    #SkinVisu.addObject('BarycentricMapping', template="Vec3d,Vec3d", name="default12", input="@..", output="@Visual" ) # Tried now
     SkinVisu.addObject('IdentityMapping', template="Vec3d,Vec3d", name="default12", input="@..", output="@Visual" )
 
     # Data
     if side==0: # left
-        Skin.itself=name.getLinkPath()
         Skin.MO=name.SkinMechObj.getLinkPath()
         Skin.COLL=name.SkinColl.TriangleCollisionSkin.getLinkPath()
         Skin.borderBox= name.borderBox
         if task=="Suture":
             Skin.sphere1Box=name.sphere1Box
             Skin.sphere2Box=name.sphere2Box
-        if task=="Incision":
-            Skin.borderBox1=name.borderBox1
-            Skin.borderBox2=name.borderBox2
-            Skin.borderBox3=name.borderBox3
-            Skin.borderBox4=name.borderBox4
-
     if side==1: # right
-        Skin.itself_right=name.getLinkPath()
         Skin.MO_right=name.SkinMechObj.getLinkPath()
         Skin.COLL_right=name.SkinColl.TriangleCollisionSkin.getLinkPath()
         Skin.borderBox_right = name.borderBox
         if task=="Suture":
             Skin.sphere3Box=name.sphere3Box
             Skin.sphere4Box=name.sphere4Box
-        if task=="Incision":
-            Skin.borderBox1_right=name.borderBox1
-            Skin.borderBox2_right=name.borderBox2
-            Skin.borderBox3_right=name.borderBox3
-            Skin.borderBox4_right=name.borderBox4
-    Skin.CONTAINER=name.TetraContainer.getLinkPath()
 
 
 
@@ -157,9 +137,6 @@ scale3d=[0.0, 0.0, 0.0], fixingBox=[0.0, 0.0, 0.0], importFile=None, geomagic=Fa
     name.addObject('TriangleFEMForceField', template='Vec3d', name='FEM', method='large', youngModulus=thread_youngModulus, poissonRatio=thread_poissonRatio)
     #name.addObject('MeshSpringForceField', name="FEM-Bend", template="Vec3d", stiffness="1000", damping="0.1")
     name.addObject('UncoupledConstraintCorrection')
-    #name.addObject('BoxROI', name='boxROI', box=[-1, -1, -1, 1, 1, 1], drawBoxes='true')
-    #name.addObject('RestShapeSpringsForceField', name='rest', points='@boxROI.indices', stiffness='1e12', angularStiffness='1e12')
-
 
     #################### COLLISION ##########################
 
@@ -189,7 +166,6 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=F
     name=parentNode.addChild(name)
     name.addObject('EulerImplicitSolver', name='ODE solver', rayleighMass="1.0", rayleighStiffness="0.01")
     name.addObject('CGLinearSolver', name='linear solver', iterations="25", tolerance="1e-7", threshold="1e-7") #SparseLDLSolver
-    name.addObject('CGLinearSolver', name='linear solver', iterations="25", tolerance="1e-7", threshold="1e-7")
     name.addObject('MeshObjLoader', name='instrumentMeshLoader', filename=importFile)
 
     if geomagic==True:
@@ -235,9 +211,7 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=F
         InstrumentVisu.addObject('OglModel', name='InstrumentVisualModel', src='@../instrumentMeshLoader', scale3d=scale3d, rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0",  color="0 0.5 0.796")
     else:
         InstrumentVisu.addObject('OglModel', name='InstrumentVisualModel', src='@../instrumentMeshLoader', scale3d=scale3d,  color="0 0.5 0.796")
-    
     InstrumentVisu.addObject('RigidMapping', template="Rigid3d,Vec3d", name='MM-VM mapping', input='@../InstrumentMechObject', output='@InstrumentVisualModel')
-    #InstrumentVisu.addObject('IdentityMapping',  input='@../InstrumentMechObject', output='@InstrumentVisualModel')
 
     # Data
     SutureNeedle.MO=name.InstrumentMechObject.getLinkPath()
@@ -246,6 +220,33 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=F
     SutureNeedle.COLL_FRONT=name.InstrumentColl_Front.SphereCollisionInstrument.getLinkPath()
     SutureNeedle.COLL_BACK=name.InstrumentColl_Back.SphereCollisionInstrument2.getLinkPath()
     
+
+
+def SutureNeedle2(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0],
+scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=False, geomagic=False):
+    name=parentNode.addChild(name)
+    name.addObject('EulerImplicitSolver', name="ODE solver", rayleighStiffness="0.01", rayleighMass="0.02")
+    name.addObject('SparseLDLSolver')
+
+    name.addObject('MechanicalObject', name="instrumentState", template="Rigid3")
+    name.addObject('UniformMass', name="mass", totalMass="0.2" )
+    name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0')
+    name.addObject('LCPForceFeedback', name="LCPFF1", activate="true", forceCoef="0.05")
+    name.addObject('UncoupledConstraintCorrection')
+
+    VisuTool=name.addChild('VisuTool')
+    VisuTool.addObject('MeshObjLoader', name="meshLoader_1", filename="Demos/Dentistry/data/mesh/dental_instrument.obj", handleSeams="1")
+    VisuTool.addObject('OglModel', name="InstrumentVisualModel" ,src="@meshLoader_1", color="1.0 0.2 0.2 1.0" ,ry="-180", rz="-90" ,dz="3.5", dx="-0.3")
+    VisuTool.addObject('RigidMapping' ,name="MM->VM mapping", input="@instrumentState", output="@InstrumentVisualModel")
+
+    CollisionModel=VisuTool.addChild('CollisionModel')
+    CollisionModel.addObject('MeshObjLoader' ,filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj",  name="loader")
+    CollisionModel.addObject('MeshTopology', src="@loader", name="InstrumentCollisionModel" )
+    CollisionModel.addObject('MechanicalObject' ,src="@loader", name="instrumentCollisionState" , ry="-180", rz="-90" ,dz="3.5", dx="-0.3")
+    CollisionModel.addObject('LineCollisionModel', contactStiffness="0.001")
+    CollisionModel.addObject('PointCollisionModel' ,contactStiffness="0.001" ,name="Instrument")
+    CollisionModel.addObject('RigidMapping', name="MM->CM mapping" ,input="@instrumentState" ,output="@instrumentCollisionState" )
+
 
  
 
@@ -306,11 +307,20 @@ def sphere(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scale3d=[0.0
 
     name=parentNode.addChild(name)
     name.addObject('MeshObjLoader', name='sphere', filename="C:\sofa\src\Chiara\mesh\sphere.obj") 
-    name.addObject('OglModel', name='sphereVis', src='@sphere', scale3d="0.8 0.8 0.8", translation=translation, color=color)
-    sphere.M=name.sphereVis.getLinkPath()
-    sphere.color=name.sphereVis.findData('scale3d').value
+    name.addObject('OglModel', name='InstrumentVisualModel', src='@sphere', scale3d="0.8 0.8 0.8", translation=translation, color=color)
    
-  
+
+
+
+
+
+   
+
+
+
+
+
+    
 ################# Three layered skin ############################
 
 x_vertices=10

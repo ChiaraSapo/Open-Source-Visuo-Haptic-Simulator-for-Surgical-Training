@@ -52,7 +52,7 @@ def createScene(root):
     root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
 
     # Geomagic device
-    root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="1", drawDevice="1", positionBase=GeomagicPosition,  orientationBase="0.707 0 0 0.707", forceFeedBack="@instrument/LCPFF1")
+    root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="0", drawDeviceFrame="1", drawDevice="1", positionBase=GeomagicPosition,  orientationBase="0.707 0 0 0.707", forceFeedBack="@instrument/LCPFF1")
     
 
     #########################################################

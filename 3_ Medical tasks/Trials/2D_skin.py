@@ -2,59 +2,43 @@
 import Sofa
 import numpy as np
 import models 
-import Sofa.SofaDeformable
-import controllers
+from SofaRuntime import Timer
+import time
 
 
-scale3d_skin=[0.5, 0.5, 1]
-scale3d_scalpel="1 1 1 "
+scale3d_skin="1 1 0.1"
+scale3d_scalpel="2 2 2"
 
 skinVolume_fileName="mesh\skinVolume_thin"
 scalpel_Instrument="mesh\scalpel.obj"
 # Collision particles positions
 pointPosition_onscalpel1="8 -7.4 -17" 
 
-# # x,y fixing box left
-# x1=scale3d_skin[0]*100
-# y1=scale3d_skin[1]*100
-
-# # x,y borderbox left
-# xb1=x1-1
-# yb1=y1
-# xb12=x1+1
-# yb12=y1
-
-# # x,y fixing box right
-# x2=x1+1
-# y2=-0.1
-# x22=x2+scale3d_skin[0]*100
-# y22=y2+scale3d_skin[1]*100
-
-# # x,y borderbox right
-# xb2=x2+1
-# yb2=y2
-# xb22=x2+1
-# yb22=y2
-
-
-
-
-    
-
-
 # Choose in your script to activate or not the GUI
 USE_GUI = True
 
+class PrintContactController(Sofa.Core.Controller):
+
+    def __init__(self, name, rootNode):
+        Sofa.Core.Controller.__init__(self, name, rootNode)
+        self.contact_listener = rootNode.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.Instrument.COLL_FRONT)
+
+    def onAnimateBeginEvent(self, event): # called at each begin of animation step
+        if self.contact_listener.getNumberOfContacts()!=0:
+            print(self.contact_listener.getContactElements())
 
 
-        
+
 def main():
     import SofaRuntime
     import Sofa.Gui
+    import Sofa.Core
+    SofaRuntime.importPlugin("SofaComponentAll")
     SofaRuntime.importPlugin("SofaOpenglVisual")
     SofaRuntime.importPlugin("SofaImplicitOdeSolver")
+    
     root = Sofa.Core.Node("root")
-    addScene(root)
+    createScene(root)
     Sofa.Simulation.init(root)
 
     if not USE_GUI:
@@ -70,8 +54,9 @@ def main():
 
 def createScene(root):
 
+    
     # Define root properties
-    root.gravity=[0, 0, -20]
+    root.gravity=[0, 0, -9.8]
     root.dt=0.01
 
     root.addObject('RequiredPlugin', pluginName="Geomagic SofaBoundaryCondition SofaCarving SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping ")
@@ -91,16 +76,13 @@ def createScene(root):
     root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
 
     # Define the variables
-    geomagic=True
+    geomagic=False
     carving=True
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
     if geomagic==True:
         root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", 
-        scale="1", drawDeviceFrame="1", drawDevice="1", positionBase="50 50 10",  orientationBase="0.707 0 0 0.707")
-        
-        # Add Geomagic Touch
-        models.GeomagicDevice(parentNode=root, name='Omni')
+        scale="1", drawDeviceFrame="1", drawDevice="1", positionBase="0 0 8",  orientationBase="0.707 0 0 0.707")
     #############################################################################################################
 
     #################### CARVING #############################################
@@ -109,27 +91,22 @@ def createScene(root):
     ##########################################################################
 
     # Add skin
-    models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
-    scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 50, 50, 0.5], 
-    importFile=skinVolume_fileName, carving=carving, borderBox=[48, -0.1, -2, 50, 50, 1], task="Incision")
+    models.Skin(parentNode=root, name='Skin', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 100, 100, 0.1], importFile=skinVolume_fileName, carving=carving)
 
-    models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[51, 0, 0], 
-    scale3d=scale3d_skin, fixingBox=[51, -0.1, -2, 101, 50, 0.1],
-    importFile=skinVolume_fileName, carving=carving, side=1, borderBox=[51, -0.1, -2, 53, 50, 1], task="Incision") 
-
-    
+    # Add Geomagic Touch
+    # models.GeomagicDevice(parentNode=root, name="Omni")
     
     # Add scalpel
-    models.Scalpel(parentNode=root, name='Scalpel', rotation=[0.0, 0.0, 0.0], translation=[10, 10, -30], scale3d=scale3d_scalpel,  
-    fixingBox=None, importFile=scalpel_Instrument, carving=carving, geomagic=geomagic)
+    models.Scalpel(parentNode=root, name='Scalpel', rotation=[0.0, 0.0, 0.0], translation=[20, 20, 30], scale3d=scale3d_scalpel,  fixingBox=None, importFile=scalpel_Instrument,  carving=carving, geomagic=geomagic)
 
-    # Add contact listener: uncomment to do stuff at animation time
-    root.addObject(controllers.IncisionContactController(name="MyController", rootNode=root))
-
-
-
+    # Add contact listener
+    root.addObject(PrintContactController(name="MyController", rootNode=root))
+    #contact_listener = root.addObject('ContactListener', collisionModel1 = models.Skin.COLL, collisionModel2 = models.Instrument.COLL_FRONT)
+    #print(contact_listener.getContactElements())
 
     return root
+
+
 
 
 

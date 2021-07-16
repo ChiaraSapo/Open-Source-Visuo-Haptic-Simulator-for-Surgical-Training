@@ -1,0 +1,15 @@
+Date: 15/7/2021
+Time: 17:43
+Task type:Suture
+Station type:Single
+
+Date: 16/7/2021
+Time: 11:36
+Task type: Select the medical task
+Station type: Select the type of station
+
+Date: 16/7/2021
+Time: 11:37
+Task type: Suture
+Station type: Single
+

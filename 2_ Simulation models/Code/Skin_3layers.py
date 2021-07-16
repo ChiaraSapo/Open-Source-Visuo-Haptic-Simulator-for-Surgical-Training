@@ -62,27 +62,7 @@ def createScene(root):
     root.gravity=[0, -9.81, 0]
     root.dt=0.01
 
-    # List of required plugins: temporarely split and ordered alphabetically to improve readability
-    # root.addObject('RequiredPlugin', pluginName="Geomagic")
-    # root.addObject('RequiredPlugin', pluginName="SofaBoundaryCondition ")
-    # root.addObject('RequiredPlugin', pluginName="SofaCarving ")
-    # root.addObject('RequiredPlugin', pluginName="SofaConstraint ")
-    # root.addObject('RequiredPlugin', pluginName="SofaDeformable ")    
-    # root.addObject('RequiredPlugin', pluginName="SofaGeneralLoader") 
-    # root.addObject('RequiredPlugin', pluginName="SofaGeneralObjectInteraction") 
-    # root.addObject('RequiredPlugin', pluginName="SofaGeneralSimpleFem ")
-    # root.addObject('RequiredPlugin', pluginName="SofaHaptics") 
-    # root.addObject('RequiredPlugin', pluginName="SofaImplicitOdeSolver") 
-    # root.addObject('RequiredPlugin', pluginName="SofaLoader ")
-    # root.addObject('RequiredPlugin', pluginName="SofaMeshCollision") 
-    # root.addObject('RequiredPlugin', pluginName="SofaOpenglVisual ")
-    # root.addObject('RequiredPlugin', pluginName="SofaRigid") 
-    # root.addObject('RequiredPlugin', pluginName="SofaSimpleFem") 
-    # root.addObject('RequiredPlugin', pluginName="SofaSparseSolver ")
-    # root.addObject('RequiredPlugin', pluginName="SofaUserInteraction")
-    # root.addObject('RequiredPlugin', pluginName="SofaTopologyMapping ")
-
-    root.addObject('RequiredPlugin', pluginName="Geomagic SofaBoundaryCondition SofaCarving SofaConstraint SofaDeformable SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping ")
+    root.addObject('RequiredPlugin', pluginName="SofaBoundaryCondition SofaCarving SofaConstraint SofaDeformable SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping ")
 
     # Collision
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
@@ -95,10 +75,6 @@ def createScene(root):
     root.addObject('FreeMotionAnimationLoop')
     root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
 
-    # Geomagic device
-    root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="0", drawDevice="0", positionBase="0 0 8",  orientationBase="0.707 0 0 0.707")
-    
-    
 
     ###################################################################
     #--------------------- SKIN EPIDERMIS LAYER ----------------------#
