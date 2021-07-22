@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # Do not use the first column as indices
 # Use both tabs and white spaces as separators
 # Give specific names to the columns
-data = pd.read_csv("SutureNeedle_pos_x.txt",  skiprows=[0,1], index_col=False, delim_whitespace=True, 
+data = pd.read_csv("C:/sofa/build/v20.12.02/bin/Release/SutureNeedle_pos_x.txt",  skiprows=[0,1], index_col=False, delim_whitespace=True, 
 names=['Time', 'x1', 'y1', 'z1'])#, 'x2', 'y2', 'z2', 'x3', 'y3', 'z3','x4','y4','z4'])
 
 # Plot data: example

@@ -35,12 +35,13 @@ def main():
 def createScene(root):
 
     # Define root properties
-    root.gravity=[0, 0, -5]
+    root.gravity=[0, 0, -6]
     root.dt=0.01
 
     # Required plugins
-    root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
+    #root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
+    root.addObject('VisualStyle', displayFlags="showInteractionForceFields")
 
     # Forces
     root.addObject('BruteForceDetection', name="detection")
@@ -57,7 +58,7 @@ def createScene(root):
     scale3d="0.25 0.65 0.1", fixingBox=[-0.1, -0.1, -2, 10, 20, 0.1], importFile="mesh\skin_volume_403020_05")
 
     # Add needle
-    SutureNeedle(parentNode=root, name='SutureNeedle', rotation=[0.0, 0.0, 0.0], translation=[14, 2, 5],     
+    SutureNeedle(parentNode=root, name='SutureNeedle', rotation=[0.0, 0.0, 0.0], translation=[14, 2, 15],     
     scale3d="5 5 5", importFile="mesh\suture_needle.obj")
 
     # Add controller
@@ -79,7 +80,7 @@ scale3d=[0.0, 0.0, 0.0], fixingBox=[0.0, 0.0, 0.0], importFile=None):
     name.addObject('TetrahedronSetTopologyContainer', src='@volumeLoader', name='TetraContainer')
     name.addObject('TetrahedronSetGeometryAlgorithms', template='Vec3d')
     name.addObject('TetrahedronSetTopologyModifier')
-    name.addObject('MechanicalObject', name='SkinMechObj', src='@volumeLoader', template='Vec3d', translation=translation)
+    name.addObject('MechanicalObject', name='SkinMechObj', template='Vec3d', translation=translation)
     name.addObject('DiagonalMass', name="SkinMass", massDensity="2.0")
     name.addObject('TetrahedronFEMForceField', template='Vec3d', name='FEM', method='large', youngModulus=1500, poissonRatio=0.49)
     name.addObject('UncoupledConstraintCorrection', compliance=0.001)
@@ -127,13 +128,12 @@ scale3d=[0.0, 0.0, 0.0], importFile=None):
     name.addObject('CGLinearSolver', name='linear solver', iterations="25", tolerance="1e-7", threshold="1e-7") 
     name.addObject('MeshObjLoader', name='instrumentMeshLoader', filename=importFile)
     name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentMechObject', template='Rigid3d', translation=translation, scale3d=scale3d)
-    name.addObject('UniformMass', name='mass', totalMass="3") 
+    name.addObject('UniformMass', name='mass', totalMass="10") 
     name.addObject('UncoupledConstraintCorrection') 
 
     #################### COLLISION ##########################
     InstrumentColl_Back = name.addChild('InstrumentColl_Back')
-
-    InstrumentColl_Back.addObject("Monitor", name="SutureNeedle_pos", indices="0", listening="1", showPositions="1", PositionsColor="1 1 0 1", TrajectoriesPrecision="0.1", TrajectoriesColor="1 1 0 1", ExportPositions="true")
+    
     InstrumentColl_Back.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0.02 0.05")
     InstrumentColl_Back.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument2", contactStiffness="1")
     InstrumentColl_Back.addObject('RigidMapping', template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
@@ -166,7 +166,7 @@ class SutureTrainingContactController(Sofa.Core.Controller):
         indicesBox = Skin.sphere1Box.findData('indices').value
 
         # Create springs
-        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=0, springStiffness=50, dampingFactor=0.5, restLength=0.1) for i in indicesBox] 
+        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=0, springStiffness=500000, dampingFactor=0.5, restLength=0.1) for i in indicesBox] 
         self.spring_force_field.addSprings(springs)
 
 if __name__ == '__main__':

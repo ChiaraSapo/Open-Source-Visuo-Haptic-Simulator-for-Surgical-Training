@@ -2,9 +2,6 @@
 import Sofa
 import numpy as np
 import Sofa.SofaDeformable
-import models
-import controllers
-
 
 # Data
 #scale3d_skin="0.2 0.3 1" #thin
@@ -58,7 +55,7 @@ def main():
 def createScene(root):
 
     # Define root properties
-    root.gravity=[0, 0, -20]
+    root.gravity=[0, 0, -10]
     root.dt=0.01
 
     # Required plugins
@@ -87,8 +84,8 @@ def createScene(root):
     importFile=skinVolume_fileName,  task="Suture")
 
 
-    physicalSphere(parentNode=root, name="sph")
-    root.addObject(controllers.ResetController(rootNode=root))
+    physicalSphere2(parentNode=root, name="sph")
+
 
     return root
 
@@ -119,7 +116,7 @@ carving=False, side=0, task=None):
     name.addObject('DiagonalMass', name="SkinMass", massDensity="2", template="Vec3d,double") #density: higher: pudding.
 
     # Forces
-    name.addObject('TetrahedronFEMForceField', template='Vec3d', name='FEM', method='large', youngModulus=skin_youngModulus, poissonRatio=skin_poissonRatio)
+    name.addObject('TetrahedralCorotationalFEMForceField', template='Vec3d', name='FEM', method='large', youngModulus=700, poissonRatio=skin_poissonRatio)
     name.addObject('UncoupledConstraintCorrection', compliance=0.001)
     #name.addObject('LinearSolverConstraintCorrection')
     #name.addObject('GenericConstraintCorrection')  
@@ -128,6 +125,8 @@ carving=False, side=0, task=None):
     # Fixed box for constraints
     boxROI=name.addObject('BoxROI', name='boxROI', box=fixingBox, drawBoxes='true', computeTriangles='true')
     name.addObject('RestShapeSpringsForceField', name='rest', points='@boxROI.indices', stiffness='1e12', angularStiffness='1e12')
+
+    name.addObject("Monitor", name="Skin_force_ball", indices="120", listening="1", TrajectoriesPrecision="0.1", ExportForces="true")
 
 
 
@@ -171,9 +170,9 @@ def physicalSphere(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scal
     name.addObject('CGLinearSolver', name='linear solver', iterations="25", tolerance=0.01, threshold=0.0001)#, tolerance="1e-7", threshold="1e-7")
     name.addObject('MeshObjLoader', name='instrumentMeshLoader', filename="mesh\sphere.obj")
    
-    name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d',src="@instrumentMeshLoader", translation=[5, 10, 5])#, scale3d=[2, 2, 2])
+    name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d',src="@instrumentMeshLoader", translation=[5, 10, 5], velocity="0 0 -1")#, scale3d=[2, 2, 2])
     
-    name.addObject('UniformMass', name='mass', totalMass="500")
+    name.addObject('UniformMass', name='mass', totalMass="50")
     name.addObject('UncoupledConstraintCorrection')
     #Force = name.addObject('ConstantForceField', name="CFF", totalForce=[0, 0, 1, 0, 0, 0] )
 
@@ -192,7 +191,27 @@ def physicalSphere(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scal
     InstrumentVisu.addObject('RigidMapping', template="Rigid3d,Vec3d", name='MM-VM mapping', input='@../InstrumentMechObject', output='@InstrumentVisualModel')
 
 
+def physicalSphere2(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0]):
 
+    name=parentNode.addChild(name)
+    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
+    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
+    name.addObject('MechanicalObject', template="Rigid3d", scale="1.0" ,translation=[0.5, 14, 5], velocity="0 0 -1000")
+    name.addObject('UniformMass' , totalMass=20)
+    name.addObject('UncoupledConstraintCorrection')
+
+    Visu=name.addChild('Visu')
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh\sphere.obj", scale="1.0", handleSeams="1" )
+    Visu.addObject('OglModel' ,name="VisualOGL" ,src="@meshLoader_3", color="0.0 0.5 0.5 1.0")
+    Visu.addObject('RigidMapping' ,input="@..", output="@VisualOGL")
+    Surf=name.addChild('Surf')
+    Surf.addObject('MeshObjLoader' ,filename="mesh\sphere.obj" ,name="loader" )
+    Surf.addObject('MeshTopology' ,src="@loader")
+    Surf.addObject('MechanicalObject' ,src="@loader", scale="1.0")
+    Surf.addObject('TriangleCollisionModel', name="Torus2Triangle" ,group="2")
+    Surf.addObject('LineCollisionModel', name="Torus2Line" ,group="2")
+    Surf.addObject('PointCollisionModel' ,name="Torus2Point" ,group="2")
+    Surf.addObject('RigidMapping')
 
 if __name__ == '__main__':
     main()

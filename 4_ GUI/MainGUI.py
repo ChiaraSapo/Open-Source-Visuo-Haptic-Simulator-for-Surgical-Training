@@ -14,14 +14,7 @@ from functools import partial
 import datetime
 
 
-x1=400
-x2=800
-y1=200
-y2=300
-y3=500
-x3=700
-y4=600
-y5=700
+
 
 # Write bat file to run the simulations
 def writeBat(command=None):
@@ -109,11 +102,25 @@ def run_medical_task(task_var, dev_n_var):
               else:
                      print("2 devices simulation does not exist yet!")
 
+xTitle=320
+yTitle=70
+xImage=300
+yImage=300
+xentry=700
+yentry=300
+xoption1=700
+yoption1=380
+xoption2=700
+yoption2=450
+xoption3=700
+yoption3=520
+xSubmit=580
+ySubmit=700
 
 def Window2(win2):
        
        # Define window visual
-       win2.geometry("1500x900")
+       win2.geometry("1400x900")
 
        # Option menus variables
        dev_n_var = tk.StringVar()
@@ -125,7 +132,7 @@ def Window2(win2):
        # Text
        label1 = tk.Label(win2, text='Run your SOFA Framework medical simulation')
        label1.config(font=('Arial', 30))
-       label1.place(x=580, y=100)
+       label1.place(x=xTitle, y=yTitle)
 
        # Images
        image1 = Image.open("Images\geo.png")
@@ -133,13 +140,13 @@ def Window2(win2):
        image1 = ImageTk.PhotoImage(image1)
        label2 = tk.Label(win2, image=image1)
        label2.image = image1
-       label2.place(x=x1,y=y1)
+       label2.place(x=xImage,y=yImage)
 
        # Take lines in input: USER NAME
        user_name = tk.Label(win2, text = 'Insert your name here', font=('calibre', 15, 'bold'))
        user_name_entry = tk.Entry(win2, textvariable = user_var, font=('calibre',10,'normal'))
-       user_name.place(x=700, y=y1, anchor='nw')
-       user_name_entry.place(x=700, y=y1+30, anchor='nw')
+       user_name.place(x=xentry, y=yentry, anchor='nw')
+       user_name_entry.place(x=xentry+30, y=yentry+30, anchor='nw')
        
        # Option menus: TASKS
        task_options = ["Suture", "Incision"]
@@ -147,7 +154,7 @@ def Window2(win2):
        question_menu2 = tk.OptionMenu(win2, task_var, *task_options)
        question_menu2.config(bg='skyblue1', font=('Arial', 15))
        question_menu2.pack()
-       question_menu2.place(x=x2, y=y1+50, anchor='nw')
+       question_menu2.place(x=xoption1, y=yoption1, anchor='nw')
        question_menu2["menu"].config(bg="skyblue1", font=('Arial', 15), bd=0)
        #task_var.trace("w", run_medical_task)
 
@@ -157,13 +164,23 @@ def Window2(win2):
        question_menu = tk.OptionMenu(win2, dev_n_var, *dev_n_options)
        question_menu.config(bg='skyblue1', font=('Arial', 15))
        question_menu.pack()
-       question_menu.place(x=x2, y=y2, anchor='nw')
+       question_menu.place(x=xoption2, y=yoption2, anchor='nw')
        question_menu["menu"].config(bg="skyblue1", font=('Arial', 15), bd=0)
        #dev_n_var.trace("w", run_medical_task)
 
+       # Option menus: Number of devices
+       plot_options = ["Plot pos/vel/acc/force/traj", "Plot trajectory only", "Plot nothing"]
+       plot_var.set("Select the desired plots")
+       question_menu3 = tk.OptionMenu(win2, plot_var, *plot_options)
+       question_menu3.config(bg='skyblue1', font=('Arial', 15))
+       question_menu3.pack()
+       question_menu3.place(x=xoption3, y=yoption3, anchor='nw')
+       question_menu3["menu"].config(bg="skyblue1", font=('Arial', 15), bd=0)
+       #plot_var.trace("w", run_medical_task)
+
        # Buttons
        submit_button = tk.Button(win2, text='Submit', command=partial(run_medical_task,task_var,dev_n_var), bg='lightskyblue2', font=('Arial', 15, 'bold'))
-       submit_button.place(x=x3, y=y3)
+       submit_button.place(x=xSubmit, y=ySubmit)
 
 if __name__ == "__main__":
 
