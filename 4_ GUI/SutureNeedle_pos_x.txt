@@ -1,2 +1,0 @@
-# Gnuplot File : positions of 1 particle(s) Monitored
-# 1st Column : time, others : particle(s) number 0 

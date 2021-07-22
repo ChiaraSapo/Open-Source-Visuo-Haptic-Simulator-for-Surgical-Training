@@ -125,6 +125,7 @@ def Window2(win2):
        # Option menus variables
        dev_n_var = tk.StringVar()
        task_var = tk.StringVar()
+       plot_var = tk.StringVar()
 
        # Entry variable 
        user_var = tk.StringVar()
