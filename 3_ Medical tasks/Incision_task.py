@@ -49,6 +49,11 @@ def createScene(root):
     root.addObject('RequiredPlugin', pluginName="Geomagic SofaBoundaryCondition SofaCarving SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
     root.addObject('VisualStyle', displayFlags="showBehaviorModels")
 
+    root.addObject('OglLabel', label="INCISION TASK", x=20, y=20, fontsize=30, selectContrastingColor="1")
+    root.addObject('OglLabel', label="Cut the skin in correnspondence of the central line", x=20, y=70, fontsize=20, selectContrastingColor="1")
+    #root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
+
+
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
 

@@ -72,6 +72,10 @@ def createScene(root):
     # Required plugins
     root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
     #root.addObject('VisualStyle', displayFlags="showInteractionForceFields ")
+    root.addObject('OglLabel', label="RINGS TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
+    root.addObject('OglLabel', label="Pass through the rings without touching them,", x=20, y=70, fontsize=20, selectContrastingColor="1")
+    root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
+
 
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
@@ -88,8 +92,7 @@ def createScene(root):
     LCPConstraintSolver=root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
 
     # View
-    root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -6.26277e-06 -0.000108372 0.908378")
-
+    root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -1 -0.000108372 0.908378")
 
     # Add skin
     suture_models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
@@ -105,7 +108,7 @@ def createScene(root):
     if geomagic==True:
 
         root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", 
-        scale="1", drawDeviceFrame="1", drawDevice="1", positionBase="10 11 10",  orientationBase="0.707 0 0 0.707", handleEventTriggersUpdate=True, emitButtonEvent=True, button2=True)
+        scale="1", drawDeviceFrame="1", drawDevice="0", positionBase="10 11 10",  orientationBase="0.707 0 0 0.707", handleEventTriggersUpdate=True, emitButtonEvent=True, button2=True)
         
         suture_models.GeomagicDevice(parentNode=root, name='Omni')
 
@@ -117,7 +120,7 @@ def createScene(root):
     suture_models.ring(parentNode=root, name="Ring3", x=12, y=7, z=4, scale3d="1.5 1.5 1.5",  M="M3")
     suture_models.ring(parentNode=root, name="Ring4", x=12, y=17, z=4, scale3d="1.5 1.5 1.5", M="M4")
 
-    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', geomagic=geomagic, dx=0, dy=0, dz=10) # To fall on sphere: dx=12, dy=3, dz=6
+    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1="RingsTask_pos", file2="RingsTask_vel", file3="RingsTask_force",  geomagic=geomagic, dx=0, dy=0, dz=10) # To fall on sphere: dx=12, dy=3, dz=6
 
     root.addObject(ChangeColorAtContactController(name="MyController", rootNode=root))
 

@@ -289,7 +289,7 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=F
 
 
 def SutureNeedle(parentNode=None, name=None, dx=0, dy=0, dz=0, scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0],
-geomagic=False, monitor=False): 
+geomagic=False, monitor=False, file1=None, file2=None, file3=None): 
     # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
 
     name=parentNode.addChild(name)
@@ -346,9 +346,9 @@ geomagic=False, monitor=False):
     collBack.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
     
     if monitor==True:
-        collBack.addObject("Monitor", name="SutureNeedle_pos", indices="0", listening="1", TrajectoriesPrecision="0.1", showPositions="1", ExportPositions="true")
-        collBack.addObject("Monitor", name="SutureNeedle_vel", indices="0", listening="1", TrajectoriesPrecision="0.1", showVelocities="1", ExportVelocities="true")
-        collBack.addObject("Monitor", name="SutureNeedle_force", indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="1", ExportForces="true")
+        collBack.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", showPositions="1", ExportPositions="true")
+        collBack.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", showVelocities="1", ExportVelocities="true")
+        collBack.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="1", ExportForces="true")
 
     SutureNeedle.ITSELF=name
     SutureNeedle.COLL=name.Surf.Torus2Point.getLinkPath()
