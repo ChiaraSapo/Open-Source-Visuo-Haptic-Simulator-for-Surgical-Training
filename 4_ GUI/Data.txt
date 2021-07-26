@@ -23,3 +23,8 @@ Time: 20:59
 Task type: Suture
 Station type: Single
 
+Date: 22/7/2021
+Time: 13:6
+Task type: Select the medical task
+Station type: Select the type of station
+

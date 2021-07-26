@@ -2,6 +2,7 @@
 import Sofa
 import numpy as np
 import Sofa.SofaDeformable
+import suture_models
 
 thread_youngModulus=2000
 thread_poissonRatio=0.8
@@ -9,6 +10,7 @@ thread_poissonRatio=0.8
 
 # Choose in your script to activate or not the GUI
 USE_GUI = True
+geomagic=True
 
 
 def main():
@@ -56,6 +58,15 @@ def createScene(root):
     LCPConstraintSolver=root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
     root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -6.26277e-06 -0.000108372 0.908378")
     
+    #################### GEOMAGIC TOUCH DEVICE ##################################################################
+    if geomagic==True:
+
+        root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", 
+        scale="1", drawDeviceFrame="1", drawDevice="1", positionBase="0 9 10",  orientationBase="0.707 0 0 0.707")
+        
+        suture_models.GeomagicDevice(parentNode=root, name='Omni')
+
+    #############################################################################################################
 
     # Add needle
     Needle_Thread(parentNode=root, name='SutureNeedle', rotation=[0.0, 0.0, 0.0], translation=[0,0,0],     
@@ -78,7 +89,12 @@ scale3d=[0.0, 0.0, 0.0], importFile=None):
     name.addObject('EulerImplicitSolver', name='ODE solver', rayleighMass="1.0", rayleighStiffness="0.01")
     name.addObject('CGLinearSolver', name='linear solver', iterations="25", tolerance="1e-7", threshold="1e-7") 
     name.addObject('MeshObjLoader', name='instrumentMeshLoader', filename=importFile)
-    name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentMechObject', template='Rigid3d', translation=translation, scale3d=scale3d)
+    if geomagic==True:
+        name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d="3", rotation="0 0 10" ) #, src="@instrumentMeshLoader")
+        name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
+        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.1", activate="true")# Decide forceCoef value better
+    else: 
+        name.addObject('MechanicalObject', src="@instrumentMeshLoader", name='InstrumentMechObject', template='Rigid3d', translation=translation, scale3d=scale3d)
     name.addObject('UniformMass', name='mass', totalMass="10") 
     name.addObject('UncoupledConstraintCorrection') 
 
@@ -117,7 +133,7 @@ scale3d=[0.0, 0.0, 0.0], importFile=None):
     # Solvers
     Thread.addObject('EulerImplicitSolver', name="odesolver")
     Thread.addObject('CGLinearSolver', iterations="25", name="EpiLinearsolver", tolerance="1.0e-9", threshold="1.0e-9")
-    Thread.addObject('MeshGmshLoader', name='name_volumeLoader', filename="mesh/threadCh2", scale3d=[0.3, 0.3, 0.1], rotation=[90, 0, 0], translation=[0,10,0])
+    Thread.addObject('MeshGmshLoader', name='name_volumeLoader', filename="mesh/threadCh2", scale3d=[0.3, 0.3, 0.1], rotation=[-90, 90, 90], translation=[10,18,4])
     #name.addObject('MeshTopology', src='@volumeLoader')
 
     # Tetrahedra container

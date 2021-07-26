@@ -17,6 +17,9 @@ pointPosition_onscalpel1="8 -7.4 -17"
 # Choose in your script to activate or not the GUI
 USE_GUI = True
 
+# Define the variables
+geomagic=True
+carving=True
 
 
         
@@ -47,7 +50,7 @@ def createScene(root):
     root.dt=0.01
 
     root.addObject('RequiredPlugin', pluginName="Geomagic SofaBoundaryCondition SofaCarving SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
-    root.addObject('VisualStyle', displayFlags="showBehaviorModels")
+    #root.addObject('VisualStyle', displayFlags="showBehaviorModels")
 
     root.addObject('OglLabel', label="INCISION TASK", x=20, y=20, fontsize=30, selectContrastingColor="1")
     root.addObject('OglLabel', label="Cut the skin in correnspondence of the central line", x=20, y=70, fontsize=20, selectContrastingColor="1")
@@ -68,9 +71,6 @@ def createScene(root):
     # Constraint solver
     root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
 
-    # Define the variables
-    geomagic=False
-    carving=False
 
     # Add skin
     incision_models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
@@ -96,12 +96,12 @@ def createScene(root):
 
     #################### CARVING #############################################
     if carving==True:
-        root.addObject('CarvingManager', active="true", carvingDistance="0.1")
+        root.addObject('CarvingManager', active="true", carvingDistance="0.05")
     ##########################################################################
 
     
     # Add scalpel
-    Scalpel(parentNode=root, name='Scalpel',   geomagic=geomagic)
+    incision_models.Scalpel(parentNode=root, name='Scalpel',   geomagic=geomagic)
 
     # Add contact listener: uncomment to do stuff at animation time
     #root.addObject(IncisionContactControllerSprings(root))
@@ -110,50 +110,6 @@ def createScene(root):
 
     return root
     
-def Scalpel(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0],
-carving=False, geomagic=False): 
-    # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
-    
-    name=parentNode.addChild(name)
-    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
-    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
-    if geomagic==True:
-        name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d="1.0", rotation="0 0 10" ) #, src="@instrumentMeshLoader")
-        name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.1", activate="true")# Decide forceCoef value better
-    else: 
-        name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale="1.0" ,dx="12", dy="13", dz="16")
-    name.addObject('UniformMass' , totalMass="3")
-    name.addObject('UncoupledConstraintCorrection')
-
-    Visu=name.addChild('Visu')
-    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/Scalpel.obj", scale="1.0", handleSeams="1" )
-    if geomagic==True:
-        Visu.addObject('OglModel',name="Visual", src='@meshLoader_3', rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0",  color="0 0.5 0.796")
-    else:
-        Visu.addObject('OglModel' ,name="Visual" ,src="@meshLoader_3",  color="0 0.5 0.796")
-    Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
-    
-    Surf=name.addChild('Surf')
-    Surf.addObject('MeshObjLoader' ,filename="mesh/Scalpel.obj" ,name="loader" )
-    Surf.addObject('MeshTopology' ,src="@loader")
-    if geomagic==True:
-        Surf.addObject('MechanicalObject' ,src="@loader", scale="1.0", rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0")
-    else: 
-        Surf.addObject('MechanicalObject' ,src="@loader", scale="1.0")#, dx="8", dy="3", dz="6")
-    #Surf.addObject('TriangleCollisionModel', name="Torus2Triangle") # DO NOT UNCOMMENT
-    #Surf.addObject('LineCollisionModel', name="Torus2Line" ) # DO NOT UNCOMMENT
-    Surf.addObject('PointCollisionModel' ,name="Torus2Point")
-    Surf.addObject('RigidMapping')
-
-    collFront = name.addChild('collFront')
-    if geomagic==True:
-        collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5", rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0")
-    else:
-        collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5")
-    collFront.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument", contactStiffness="1")
-    collFront.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
-
 
 
 

@@ -22,7 +22,7 @@ def sphere(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scale3d=[0.0
 
     name=parentNode.addChild(name)
     name.addObject('MeshObjLoader', name='sphere', filename="C:\sofa\src\Chiara\mesh\sphere.obj") 
-    name.addObject('OglModel', name='sphereVis', src='@sphere', scale3d="0.8 0.8 0.8", translation=translation, color=color)
+    name.addObject('OglModel', name='sphereVis', src='@sphere', scale3d="1 1 1", translation=translation, color=color)
     if M=="M1":
         sphere.M1=name.sphereVis
     if M=="M2":
@@ -39,19 +39,19 @@ def ring(parentNode=None, name=None, x=0, y=0, z=0, scale3d=[0.0, 0.0, 0.0],  M=
     name=parentNode.addChild(name)
     name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
     name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
-    name.addObject('MechanicalObject', template="Rigid3d", scale="1.0" ,dx=x, dy=y, dz=z)
+    name.addObject('MechanicalObject', template="Rigid3d", scale="1.1" ,dx=x, dy=y, dz=z)
     name.addObject('UniformMass' ,filename="BehaviorModels/torus.rigid")
     name.addObject('UncoupledConstraintCorrection')
     name.addObject('BoxROI', name='boxROI', box=[x-1,y-1,z-3,x+1,y+1,z], drawBoxes='true', computeTriangles='true')
     name.addObject('RestShapeSpringsForceField', name='rest', points='@boxROI.indices', stiffness='1e12', angularStiffness='1e12')
     Visu=name.addChild('Visu')
-    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/torus.obj", scale="1.0", handleSeams="1" )
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/torus.obj", scale="1.1", handleSeams="1" )
     Visu.addObject('OglModel' ,name="VisualOGL" ,src="@meshLoader_3",material="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45")
     Visu.addObject('RigidMapping' ,input="@..", output="@VisualOGL")
     Surf=name.addChild('Surf')
     Surf.addObject('MeshObjLoader' ,filename="mesh/torus_for_collision.obj" ,name="loader" )
     Surf.addObject('MeshTopology' ,src="@loader")
-    Surf.addObject('MechanicalObject' ,src="@loader", scale="1.0")
+    Surf.addObject('MechanicalObject' ,src="@loader", scale="1.1")
     Surf.addObject('TriangleCollisionModel', name="Torus2Triangle" ,group="2")
     Surf.addObject('LineCollisionModel', name="Torus2Line" ,group="2")
     Surf.addObject('PointCollisionModel' ,name="Torus2Point" ,group="2")
@@ -85,6 +85,7 @@ side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.0, 0.0],borderB
     #name.addObject('SparseLDLSolver')
 
     # Volumetric mesh loader
+
     name.addObject('MeshGmshLoader', name='volumeLoader', filename=importFile, scale3d=scale3d)
 
     # Tetrahedra container
@@ -297,8 +298,8 @@ geomagic=False, monitor=False, file1=None, file2=None, file3=None):
     name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
     if geomagic==True:
         name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d="3", rotation="0 0 10" ) #, src="@instrumentMeshLoader")
-        name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.1", activate="true")# Decide forceCoef value better
+        name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='100', angularStiffness='100', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
+        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.05", activate="true")# Decide forceCoef value better
         SutureNeedle.RS=name.InstrumentRestShape
     else: 
         name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale="3.0" ,dx=dx, dy=dy, dz=dz)
@@ -346,9 +347,9 @@ geomagic=False, monitor=False, file1=None, file2=None, file3=None):
     collBack.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
     
     if monitor==True:
-        collBack.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", showPositions="1", ExportPositions="true")
-        collBack.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", showVelocities="1", ExportVelocities="true")
-        collBack.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="1", ExportForces="true")
+        collBack.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true")
+        collBack.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
+        collBack.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportForces="true")
 
     SutureNeedle.ITSELF=name
     SutureNeedle.COLL=name.Surf.Torus2Point.getLinkPath()
@@ -360,7 +361,60 @@ geomagic=False, monitor=False, file1=None, file2=None, file3=None):
     SutureNeedle.COLL_BACK=name.collBack.SphereCollisionInstrument2.getLinkPath()
     SutureNeedle.MO_TAG=name.InstrumentMechObject
 
-        
+
+def StraightNeedle(parentNode=None, name=None, dx=0, dy=0, dz=0, scale3d=[0.1, 0.4, 0.4], color=[0.0, 0.0, 0.0],
+geomagic=False, monitor=False, file1=None, file2=None, file3=None): 
+    # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
+
+    name=parentNode.addChild(name)
+    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
+    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
+    if geomagic==True:
+        name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d=scale3d) #, src="@instrumentMeshLoader")
+        name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
+        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.1", activate="true")# Decide forceCoef value better
+        SutureNeedle.RS=name.InstrumentRestShape
+    else: 
+        name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale3d=scale3d ,dx=dx, dy=dy, dz=dz)
+    name.addObject('UniformMass' , totalMass="3")
+    name.addObject('UncoupledConstraintCorrection')
+
+    Visu=name.addChild('Visu')
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/straight_needle.obj", scale3d=scale3d, handleSeams="1" , translation=[0, 0, 10] , rotation=[0, 90, 0])
+    if geomagic==True:
+        Visu.addObject('OglModel',name="Visual", src='@meshLoader_3',  color="0 0.5 0.796", translation=[0,0,-11])#, rotation=[90, 0, 0])#, dz=3)
+    else:
+        Visu.addObject('OglModel' ,name="Visual" ,src="@meshLoader_3",  color="0 0.5 0.796")
+    Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
+    
+    Surf=name.addChild('Surf')
+    Surf.addObject('MeshObjLoader' ,filename="mesh/straight_needle.obj" ,scale3d=scale3d, name="loader", translation=[0, 0, 10] , rotation=[0, 90, 0])
+    Surf.addObject('MeshTopology' ,src="@loader")
+    #if geomagic==True:
+    Surf.addObject('MechanicalObject' ,src="@loader", translation=[0,0,-11])#, rotation=[90, 0, 0])
+    
+    # else: 
+    #     Surf.addObject('MechanicalObject' ,src="@loader", scale3d=scale3d)#, dx="8", dy="3", dz="6")
+    #Surf.addObject('TriangleCollisionModel', name="Torus2Triangle") # DO NOT UNCOMMENT
+    #Surf.addObject('LineCollisionModel', name="Torus2Line" ) # DO NOT UNCOMMENT
+    Surf.addObject('PointCollisionModel' ,name="Torus2Point")
+    Surf.addObject('RigidMapping')
+    if monitor==True:
+        Surf.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", showTrajectories="0", ExportPositions="true")
+        Surf.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1",  ExportVelocities="true")
+        Surf.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportForces="true")
+        StraightNeedle.Monitor=name.Surf.RingsTask_pos
+
+
+    StraightNeedle.ITSELF=name
+    StraightNeedle.COLL=name.Surf.Torus2Point.getLinkPath()
+    StraightNeedle.MO=name.InstrumentMechObject.getLinkPath()
+
+    StraightNeedle.POS=name.InstrumentMechObject.findData('position').value
+  
+    StraightNeedle.MO_TAG=name.InstrumentMechObject
+
+           
 
 
 

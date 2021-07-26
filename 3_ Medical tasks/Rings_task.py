@@ -4,6 +4,7 @@ import numpy as np
 import Sofa.SofaDeformable
 import suture_models
 import time
+import subprocess
 
 
 # Data
@@ -16,7 +17,7 @@ pointPosition_onNeedle="-6.98 0.02 0.05" #N: 5,5,5
 
 GeomagicPosition="0 20 15"
 skinVolume_fileName="mesh/skin_volume_403020_05" #03 troppo lento
-needleVolume_fileName="mesh/suture_needle.obj"
+needleVolume_fileName="mesh/straight_needle.obj"
 threadVolume_fileName="mesh/threadCh2"
 
 # Data
@@ -83,7 +84,7 @@ def createScene(root):
     # Forces
     root.addObject('BruteForceDetection', name="detection")
     root.addObject('DefaultContactManager', name="CollisionResponse", response="FrictionContact")
-    root.addObject('LocalMinDistance', name="proximity", alarmDistance="0.3", contactDistance="0.05", angleCone="0.0")
+    root.addObject('LocalMinDistance', name="proximity", alarmDistance="0.1", contactDistance="0.05", angleCone="0.0")
 
     # Animation loop
     root.addObject('FreeMotionAnimationLoop')
@@ -108,21 +109,23 @@ def createScene(root):
     if geomagic==True:
 
         root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", 
-        scale="1", drawDeviceFrame="1", drawDevice="0", positionBase="10 11 10",  orientationBase="0.707 0 0 0.707", handleEventTriggersUpdate=True, emitButtonEvent=True, button2=True)
-        
+        scale="1.5", drawDeviceFrame="0", drawDevice="0", positionBase="10 11 10",  orientationBase="0.707 0 0 0.707", handleEventTriggersUpdate=True, emitButtonEvent=True, button2=True)
+        # Last: tilt avanti e indietro 
         suture_models.GeomagicDevice(parentNode=root, name='Omni')
 
     #############################################################################################################
 
     # # Add training rings
-    suture_models.ring(parentNode=root, name="Ring1", x=8, y=3, z=4, scale3d="1.5 1.5 1.5",  M="M1")
-    suture_models.ring(parentNode=root, name="Ring2", x=8, y=13, z=4, scale3d="1.5 1.5 1.5",  M="M2")
-    suture_models.ring(parentNode=root, name="Ring3", x=12, y=7, z=4, scale3d="1.5 1.5 1.5",  M="M3")
-    suture_models.ring(parentNode=root, name="Ring4", x=12, y=17, z=4, scale3d="1.5 1.5 1.5", M="M4")
+    suture_models.ring(parentNode=root, name="Ring1", x=7, y=3, z=4, scale3d="1.5 1.5 1.5",  M="M1")
+    suture_models.ring(parentNode=root, name="Ring2", x=7, y=11, z=4, scale3d="1.5 1.5 1.5",  M="M2")
+    suture_models.ring(parentNode=root, name="Ring3", x=13, y=7, z=4, scale3d="1.5 1.5 1.5",  M="M3")
+    suture_models.ring(parentNode=root, name="Ring4", x=13, y=15, z=4, scale3d="1.5 1.5 1.5", M="M4")
 
-    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1="RingsTask_pos", file2="RingsTask_vel", file3="RingsTask_force",  geomagic=geomagic, dx=0, dy=0, dz=10) # To fall on sphere: dx=12, dy=3, dz=6
+    suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=True, file1="RingsTask_pos", file2="RingsTask_vel", file3="RingsTask_force",  geomagic=geomagic, dx=0, dy=0, dz=10) # To fall on sphere: dx=12, dy=3, dz=6
 
     root.addObject(ChangeColorAtContactController(name="MyController", rootNode=root))
+
+    print(suture_models.StraightNeedle.Monitor.findData('showTrajectories').value)
 
 
 
@@ -137,41 +140,70 @@ class ChangeColorAtContactController(Sofa.Core.Controller):
         Sofa.Core.Controller.__init__(self, name, rootNode)
         
         self.root=rootNode
-        self.contact_listener1 = rootNode.addObject('ContactListener', name="C1", collisionModel1 = suture_models.ring.C1, collisionModel2 = suture_models.SutureNeedle.COLL)
-        self.contact_listener2 = rootNode.addObject('ContactListener', name="C2", collisionModel1 = suture_models.ring.C2, collisionModel2 = suture_models.SutureNeedle.COLL)
-        self.contact_listener3 = rootNode.addObject('ContactListener', name="C3", collisionModel1 = suture_models.ring.C3, collisionModel2 = suture_models.SutureNeedle.COLL)
-        self.contact_listener4 = rootNode.addObject('ContactListener', name="C4", collisionModel1 = suture_models.ring.C4, collisionModel2 = suture_models.SutureNeedle.COLL)
-        
+        self.contact_listener1 = rootNode.addObject('ContactListener', name="C1", collisionModel1 = suture_models.ring.C1, collisionModel2 = suture_models.StraightNeedle.COLL)
+        self.contact_listener2 = rootNode.addObject('ContactListener', name="C2", collisionModel1 = suture_models.ring.C2, collisionModel2 = suture_models.StraightNeedle.COLL)
+        self.contact_listener3 = rootNode.addObject('ContactListener', name="C3", collisionModel1 = suture_models.ring.C3, collisionModel2 = suture_models.StraightNeedle.COLL)
+        self.contact_listener4 = rootNode.addObject('ContactListener', name="C4", collisionModel1 = suture_models.ring.C4, collisionModel2 = suture_models.StraightNeedle.COLL)
+
+    
     # Function called at each begin of animation step
     def onAnimateBeginEvent(self, event):
 
         newMaterial="Default Diffuse 1 1 0 0 1 Ambient 1 0.2 0 0 1 Specular 0 1 0 0 1 Emissive 0 1 0 0 1 Shininess 0 45"
         oldMaterial="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45"
-                
+        
+        # Button1 == Black button; Button2 == Grey button
+        if self.root.GeomagicDevice.findData('button2').value!=0: # If button is toggled
+            if suture_models.StraightNeedle.Monitor.findData('showTrajectories').value==1:
+                suture_models.StraightNeedle.Monitor.findData('showTrajectories').value=0
+            elif suture_models.StraightNeedle.Monitor.findData('showTrajectories').value==0:
+                suture_models.StraightNeedle.Monitor.findData('showTrajectories').value=1
+        
+        if self.root.GeomagicDevice.findData('button1').value==1:
+            self.root.animate = False
+            subprocess.call(['D:\Thesis\GUI\plotRings.bat'])
+            self.root.quit()
+        
         # ring.M.texcoords.value and ring.M.findData('material').value give the same result.
         if self.contact_listener4.getNumberOfContacts()!=0: #4:1
-            print("contact1")
+            #print("contact1")
             suture_models.ring.V4.findData('material').value=newMaterial
+            if suture_models.ring.V3.findData('material').value!=oldMaterial:
+                suture_models.ring.V3.findData('material').value=oldMaterial
+            if suture_models.ring.V2.findData('material').value!=oldMaterial:
+                suture_models.ring.V2.findData('material').value=oldMaterial
+            if suture_models.ring.V1.findData('material').value!=oldMaterial:
+                suture_models.ring.V1.findData('material').value=oldMaterial
 
         if self.contact_listener2.getNumberOfContacts()!=0:
-            print("contact2")
+            #print("contact2")
             suture_models.ring.V2.findData('material').value=newMaterial
+            if suture_models.ring.V3.findData('material').value!=oldMaterial:
+                suture_models.ring.V3.findData('material').value=oldMaterial
             if suture_models.ring.V4.findData('material').value!=oldMaterial:
                 suture_models.ring.V4.findData('material').value=oldMaterial
+            if suture_models.ring.V1.findData('material').value!=oldMaterial:
+                suture_models.ring.V1.findData('material').value=oldMaterial
 
         if self.contact_listener3.getNumberOfContacts()!=0: #3
-            print("contact3")
+            #print("contact3")
             suture_models.ring.V3.findData('material').value=newMaterial
+            if suture_models.ring.V4.findData('material').value!=oldMaterial:
+                suture_models.ring.V4.findData('material').value=oldMaterial
             if suture_models.ring.V2.findData('material').value!=oldMaterial:
                 suture_models.ring.V2.findData('material').value=oldMaterial
+            if suture_models.ring.V1.findData('material').value!=oldMaterial:
+                suture_models.ring.V1.findData('material').value=oldMaterial
 
         if self.contact_listener1.getNumberOfContacts()!=0:
-            print("contact4")
+            #print("contact4")
             suture_models.ring.V1.findData('material').value=newMaterial
+            if suture_models.ring.V3.findData('material').value!=oldMaterial:
+                suture_models.ring.V3.findData('material').value=oldMaterial
             if suture_models.ring.V2.findData('material').value!=oldMaterial:
                 suture_models.ring.V2.findData('material').value=oldMaterial
-
-        
+            if suture_models.ring.V4.findData('material').value!=oldMaterial:
+                suture_models.ring.V4.findData('material').value=oldMaterial
         
 
 

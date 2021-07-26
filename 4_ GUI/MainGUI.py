@@ -12,7 +12,7 @@ from PIL import ImageTk, Image
 import os
 from functools import partial
 import datetime
-
+import sys
 
 
 
@@ -32,6 +32,9 @@ def writeBat(command=None):
        elif command=="Incision_task.py":
               myBat = open('run_incision.bat', 'x')
               myBat = open('run_incision.bat', 'w')
+       elif command=="Rings_task.py":
+              myBat = open('run_rings.bat', 'x')
+              myBat = open('run_rings.bat', 'w')
        
        # Define commands to write
        command1 = f"cd {sofa}\n"
@@ -49,38 +52,59 @@ def writeBat(command=None):
 def start_suture(): 
        try: 
               subprocess.call(['run_suture.bat'])
+              sys.exit()
        except:
               writeBat("Suture_task.py")
               time.sleep(3)
               subprocess.call(['run_suture.bat'])
+              sys.exit()
+
+# Start suture simulation
+def start_rings(): 
+       try: 
+              subprocess.call(['run_rings.bat'])
+              sys.exit()
+       except:
+              writeBat("Rings_task.py")
+              time.sleep(3)
+              subprocess.call(['run_rings.bat'])
+              sys.exit()
+
 
 
 # Start incision simulation
 def start_incision(): 
        try: 
               subprocess.call(['run_incision.bat'])
+              sys.exit()
        except:
               writeBat("Incision_task.py")
               time.sleep(3)
               subprocess.call(['run_incision.bat'])
+              sys.exit()
+
+
 
 
 # Define the medical task to be run
-def run_medical_task(task_var, dev_n_var):
+def run_medical_task(task_var, dev_n_var, user_var, win2):
        
        # Get data
        task_type=str(task_var.get())
        number_dev=str(dev_n_var.get())
+       user_name=str(user_var.get())
+
+       fileName=f"{user_name}.txt"
        
        # Create/Open Data file
-       if os.path.exists('Data.txt'):
+       if os.path.exists(fileName):
               print("Data already exists")
-              Data = open('Data.txt', 'a')
+              Data = open(fileName, 'a')
 
        # Data does not exist: create file
        else:
-              Data = open('Data.txt', 'x')
-              Data = open('Data.txt', 'w')       
+              Data = open(fileName, 'x')
+              Data = open(fileName, 'w')       
        
        # Take current time
        now = datetime.datetime.now()
@@ -95,12 +119,27 @@ def run_medical_task(task_var, dev_n_var):
        Data.close()
        
        if task_type=="Incision":
-              start_incision()
+              if number_dev=="Single":
+                     start_incision()
+              elif number_dev=="Double":
+                     print("Incision is only available with single station at the moment")
+                     start_incision()
+
        elif task_type=="Suture":
               if number_dev=="Single":
                      start_suture()
-              else:
-                     print("2 devices simulation does not exist yet!")
+              elif number_dev=="Double":
+                     print("Suture is only available with single station at the moment")
+                     start_suture()
+       
+       elif task_type=="Rings":
+              if number_dev=="Single":
+                     start_rings()
+              elif number_dev=="Double":
+                     print("Rings is only available with single station at the moment")
+                     start_rings()
+
+
 
 xTitle=320
 yTitle=70
@@ -150,7 +189,7 @@ def Window2(win2):
        user_name_entry.place(x=xentry+30, y=yentry+30, anchor='nw')
        
        # Option menus: TASKS
-       task_options = ["Suture", "Incision"]
+       task_options = ["Suture", "Incision", "Rings"]
        task_var.set("Select the medical task")
        question_menu2 = tk.OptionMenu(win2, task_var, *task_options)
        question_menu2.config(bg='skyblue1', font=('Arial', 15))
@@ -180,7 +219,7 @@ def Window2(win2):
        #plot_var.trace("w", run_medical_task)
 
        # Buttons
-       submit_button = tk.Button(win2, text='Submit', command=partial(run_medical_task,task_var,dev_n_var), bg='lightskyblue2', font=('Arial', 15, 'bold'))
+       submit_button = tk.Button(win2, text='Submit', command=partial(run_medical_task,task_var,dev_n_var,user_var,win2), bg='lightskyblue2', font=('Arial', 15, 'bold'))
        submit_button.place(x=xSubmit, y=ySubmit)
 
 if __name__ == "__main__":

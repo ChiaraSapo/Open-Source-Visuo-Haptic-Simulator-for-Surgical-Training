@@ -105,34 +105,44 @@ def GeomagicDevice(parentNode=None, name=None):
     name.addObject('MechanicalObject', template="Rigid3", name="DOFs", position="@GeomagicDevice.positionDevice")
     name.addObject('MechanicalStateController', template="Rigid3", listening="true", mainDirection="-1.0 0.0 0.0")
 
-def Scalpel2(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0],
+def Scalpel(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0],
 geomagic=False): 
     # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
 
     name=parentNode.addChild(name)
     name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
     name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
-    name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale="1.0" ,dx="8", dy="3", dz="6")
+    if geomagic==True:
+        name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale="1.0", rotation="0 0 10",  dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90") #, src="@instrumentMeshLoader")
+        name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
+        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.1", activate="true")# Decide forceCoef value better
+    else: 
+        name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale="1.0" ,dx="8", dy="3", dz="6")
     name.addObject('UniformMass' , totalMass="3")
     name.addObject('UncoupledConstraintCorrection')
+
     Visu=name.addChild('Visu')
     Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/scalpel.obj", scale="1.0", handleSeams="1" )
-    Visu.addObject('OglModel' ,name="Visual" ,src="@meshLoader_3",  color="0 0.5 0.796")
+    Visu.addObject('OglModel' ,name="Visual" ,src="@meshLoader_3",  color="0 0.5 0.796", dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
     Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
+    
     Surf=name.addChild('Surf')
     Surf.addObject('MeshObjLoader' ,filename="mesh/scalpel.obj" ,name="loader" )
     Surf.addObject('MeshTopology' ,src="@loader")
-    Surf.addObject('MechanicalObject' ,src="@loader", scale="1.0")
+    Surf.addObject('MechanicalObject' ,src="@loader", scale="1.0",  dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
     Surf.addObject('TriangleCollisionModel', name="Torus2Triangle" ,group="2")
     Surf.addObject('LineCollisionModel', name="Torus2Line" ,group="2")
     Surf.addObject('PointCollisionModel' ,name="Torus2Point" ,group="2")
     Surf.addObject('RigidMapping')
 
     collFront = name.addChild('collFront')
-    collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5")
+    collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5",  dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
     collFront.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument", contactStiffness="1", tags="CarvingTool")
     collFront.addObject('RigidMapping')#, template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
 
+    Scalpel.MO=name.InstrumentMechObject.getLinkPath()
+    Scalpel.POS=name.InstrumentMechObject.findData('position').value
+    Scalpel.COLL_FRONT=name.collFront.SphereCollisionInstrument.getLinkPath()
 
 
 def ScalpelOld(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0],
