@@ -2,15 +2,16 @@ import Sofa
 import numpy as np
 
 # Data
-skin_youngModulus=300
-thread_youngModulus=2000
-skin_poissonRatio=0.49
+skin_youngModulus=4000
+thread_youngModulus=3000
+skin_poissonRatio=0.1
 thread_poissonRatio=0.8
 
 
 def Skin(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
 scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], indicesBox=[0.0, 0.0, 0.0], borderBox=[0.0, 0.0, 0.0], importFile=None, 
-carving=False, side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.0, 0.0],borderBox3=[0.0, 0.0, 0.0],borderBox4=[0.0, 0.0, 0.0]):
+carving=False, side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.0, 0.0],borderBox3=[0.0, 0.0, 0.0],borderBox4=[0.0, 0.0, 0.0],
+borderBox5=[0.0, 0.0, 0.0],borderBox6=[0.0, 0.0, 0.0],borderBox7=[0.0, 0.0, 0.0],borderBox8=[0.0, 0.0, 0.0]):
 
     name=parentNode.addChild(name)
     
@@ -42,12 +43,16 @@ carving=False, side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.
     name.addObject('RestShapeSpringsForceField', name='rest', points='@boxROI.indices', stiffness='1e12', angularStiffness='1e12')
 
     # Border box
-    name.addObject('BoxROI', name='borderBox', box=borderBox, drawBoxes='true')
+    #name.addObject('BoxROI', name='borderBox', box=borderBox, drawBoxes='true')
 
     name.addObject('BoxROI', name='borderBox1', box=borderBox1, drawBoxes='true')
     name.addObject('BoxROI', name='borderBox2', box=borderBox2, drawBoxes='true')
     name.addObject('BoxROI', name='borderBox3', box=borderBox3, drawBoxes='true')
     name.addObject('BoxROI', name='borderBox4', box=borderBox4, drawBoxes='true')
+    name.addObject('BoxROI', name='borderBox5', box=borderBox5, drawBoxes='true')
+    name.addObject('BoxROI', name='borderBox6', box=borderBox6, drawBoxes='true')
+    name.addObject('BoxROI', name='borderBox7', box=borderBox7, drawBoxes='true')
+    name.addObject('BoxROI', name='borderBox8', box=borderBox8, drawBoxes='true')
 
 
     #################### COLLISION ##########################
@@ -66,6 +71,8 @@ carving=False, side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.
     else: 
         SkinColl.addObject('TriangleCollisionModel', name="TriangleCollisionSkin")
 
+    #SkinColl.addObject('LineCollisionModel', name="LineCollisionSkin")
+    #SkinColl.addObject('PointCollisionModel', name="PointCollisionSkin") 
 
     #################### VISUALIZATION ########################
     
@@ -81,29 +88,45 @@ carving=False, side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.
         Skin.itself=name.getLinkPath()
         Skin.MO=name.SkinMechObj.getLinkPath()
         Skin.COLL=name.SkinColl.TriangleCollisionSkin.getLinkPath()
-        Skin.borderBox= name.borderBox
+        #Skin.borderBox= name.borderBox
         Skin.borderBox1=name.borderBox1
         Skin.borderBox2=name.borderBox2
         Skin.borderBox3=name.borderBox3
         Skin.borderBox4=name.borderBox4
+        Skin.borderBox5=name.borderBox5
+        Skin.borderBox6=name.borderBox6
+        Skin.borderBox7=name.borderBox7
+        Skin.borderBox8=name.borderBox8
 
     if side==1: # right
         Skin.itself_right=name.getLinkPath()
         Skin.MO_right=name.SkinMechObj.getLinkPath()
         Skin.COLL_right=name.SkinColl.TriangleCollisionSkin.getLinkPath()
-        Skin.borderBox_right = name.borderBox
+        #Skin.borderBox_right = name.borderBox
         Skin.borderBox1_right=name.borderBox1
         Skin.borderBox2_right=name.borderBox2
         Skin.borderBox3_right=name.borderBox3
         Skin.borderBox4_right=name.borderBox4
+        Skin.borderBox5_right=name.borderBox5
+        Skin.borderBox6_right=name.borderBox6
+        Skin.borderBox7_right=name.borderBox7
+        Skin.borderBox8_right=name.borderBox8
     Skin.CONTAINER=name.TetraContainer.getLinkPath()
 
+    return name
 
 
-def GeomagicDevice(parentNode=None, name=None):
+
+## This function defines a geomagic
+# @param parentNode: parent node of the skin patch
+# @param name: name of the behavior node
+# @param rotation: rotation 
+# @param translation: translation
+def GeomagicDevice(parentNode=None, name=None, position=None):
     name=parentNode.addChild(name)
-    name.addObject('MechanicalObject', template="Rigid3", name="DOFs", position="@GeomagicDevice.positionDevice")
+    name.addObject('MechanicalObject', template="Rigid3", name="DOFs", position=position)
     name.addObject('MechanicalStateController', template="Rigid3", listening="true", mainDirection="-1.0 0.0 0.0")
+
 
 def Scalpel(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0],
 geomagic=False): 
@@ -115,9 +138,9 @@ geomagic=False):
     if geomagic==True:
         name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale="1.0", rotation="0 0 10",  dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90") #, src="@instrumentMeshLoader")
         name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.1", activate="true")# Decide forceCoef value better
+        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.07", activate="true")# Decide forceCoef value better
     else: 
-        name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale="1.0" ,dx="8", dy="3", dz="6")
+        name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale="1.0" ,dx="8", dy="3", dz="25")
     name.addObject('UniformMass' , totalMass="3")
     name.addObject('UncoupledConstraintCorrection')
 
@@ -130,9 +153,9 @@ geomagic=False):
     Surf.addObject('MeshObjLoader' ,filename="mesh/scalpel.obj" ,name="loader" )
     Surf.addObject('MeshTopology' ,src="@loader")
     Surf.addObject('MechanicalObject' ,src="@loader", scale="1.0",  dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
-    Surf.addObject('TriangleCollisionModel', name="Torus2Triangle" ,group="2")
-    Surf.addObject('LineCollisionModel', name="Torus2Line" ,group="2")
-    Surf.addObject('PointCollisionModel' ,name="Torus2Point" ,group="2")
+    Surf.addObject('TriangleCollisionModel', name="Torus2Triangle" , contactStiffness="1000")#, tags="CarvingTool")
+    Surf.addObject('LineCollisionModel', name="Torus2Line" , contactStiffness="1000")#, tags="CarvingTool")
+    Surf.addObject('PointCollisionModel' ,name="Torus2Point" , contactStiffness="10000")#, tags="CarvingTool")
     Surf.addObject('RigidMapping')
 
     collFront = name.addChild('collFront')
@@ -140,9 +163,16 @@ geomagic=False):
     collFront.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument", contactStiffness="1", tags="CarvingTool")
     collFront.addObject('RigidMapping')#, template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
 
+    collFront2 = name.addChild('collFront2')
+    collFront2.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5",  dz="4", dx="-4", dy="-4",  rx="0", ry="0", rz="90")
+    collFront2.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument2", contactStiffness="1", tags="CarvingTool")
+    collFront2.addObject('RigidMapping')#, template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
+
     Scalpel.MO=name.InstrumentMechObject.getLinkPath()
     Scalpel.POS=name.InstrumentMechObject.findData('position').value
+    #Scalpel.COLL_FRONT=name.Surf.Torus2Triangle.getLinkPath()
     Scalpel.COLL_FRONT=name.collFront.SphereCollisionInstrument.getLinkPath()
+    Scalpel.COLL_FRONT2=name.collFront2.SphereCollisionInstrument2.getLinkPath()
 
 
 def ScalpelOld(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0],

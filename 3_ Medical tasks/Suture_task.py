@@ -21,10 +21,8 @@ needleVolume_fileName="mesh/suture_needle.obj"
 threadVolume_fileName="mesh/threadCh2"
 
 # Data
-skin_youngModulus=1700#300
-thread_youngModulus=2000
-skin_poissonRatio=0.49
-thread_poissonRatio=0.8
+stiffness_springNeedle=40
+stiffness_springSkins=100
 
 geomagic=True
 carving=False
@@ -61,13 +59,28 @@ def main():
 
 def createScene(root):
 
+    # Read user name
+    Config=open('D:\Thesis\GUI\Config.txt')
+    for line in Config:
+        pass
+    user_name = line
+    Config.close()
+
+    # Read user data (last lines of the file)
+    fileName=f"D:\Thesis\GUI\{user_name}.txt"
+    User=open(fileName)
+    lines1=User.readlines()
+    lines=lines1[-5:] #put 4 LATER
+    station_type=lines[3]
+    User.close()
+
     # Define root properties
-    root.gravity=[0, 0, -7]
+    root.gravity=[0, 0, -2]
     root.dt=0.01
 
     # Required plugins
     root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaCarving SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
-    root.addObject('VisualStyle', displayFlags="showInteractionForceFields")
+    #root.addObject('VisualStyle', displayFlags="showInteractionForceFields")
 
     root.addObject('OglLabel', label="SUTURE TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
     root.addObject('OglLabel', label="Pierce the skin in correnspondence of the green spheres", x=20, y=70, fontsize=20, selectContrastingColor="1")
@@ -107,22 +120,34 @@ def createScene(root):
     ##########################################################################
 
     # Add skin
-    suture_models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
-    scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 10, 20, 0.1], borderBox=[7, -0.1, -2, 10, 20, 1], 
-    importFile=skinVolume_fileName,  task="Suture")
+    skin_left=suture_models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
+    scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 10, 20, 0.1], 
+    borderBox1=[8-2, 3-2, -0.1, 8+2, 3+2, 3], borderBox2=[8-2, 13-2, -0.1, 8+2, 13+2, 3])
 
-    suture_models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[11, 0, 0], 
-    scale3d=scale3d_skin, fixingBox=[11, -0.1, -2, 22, 20, 0.1], borderBox=[11, -0.1, -2, 14, 20, 1],
-    importFile=skinVolume_fileName,  side=1, task="Suture") 
+    skin_right=suture_models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[10.5, 0, 0], 
+    scale3d=scale3d_skin, fixingBox=[10.5, -0.1, -2, 21, 20, 0.1],
+    borderBox3=[10.5, 7-2, -0.1, 12+2, 7+2, 3], borderBox4=[10.5, 17-2, -0.1, 12+2, 17+2, 3],
+    side=1) 
 
-
+    station_type="Single\n"
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
     if geomagic==True:
 
-        root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", 
-        scale="1", drawDeviceFrame="1", drawDevice="0", positionBase="10 13 10",  orientationBase="0.707 0 0 0.707")
-        
-        suture_models.GeomagicDevice(parentNode=root, name='Omni')
+        if station_type=="Double\n":
+            root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="1", 
+            drawDevice="1", positionBase="20 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
+
+            root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
+            drawDevice="1", positionBase="0 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
+
+            GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
+            GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
+
+        else: 
+            root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="1", 
+            drawDevice="0", positionBase="10 13 10",  orientationBase="0.707 0 0 0.707", forceFeedBack="@SutureNeedle/LCPFFNeedle")
+            
+            GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
 
     #############################################################################################################
 
@@ -137,7 +162,7 @@ def createScene(root):
     # scale3d=[0.5, 0.5, 0.6],  fixingBox=None, importFile=threadVolume_fileName, geomagic=geomagic)
 
     # # Add Suture Controller
-    root.addObject(SutureTrainingContactController(name="MyController", rootNode=root, CM=CM))
+    root.addObject(SutureTrainingContactController(name="MyController", rootNode=root, CM=CM, skin_left=skin_left, skin_right=skin_right))
 
     # # Add training spheres: add when necessary
     suture_models.sphere(parentNode=root, name="Sphere1", translation=[8, 3.0, 3.0], scale3d="1.5 1.5 1.5", color="1.0 0 0.0", M="M1")
@@ -148,7 +173,15 @@ def createScene(root):
     return root
 
 
-
+## This function defines a geomagic
+# @param parentNode: parent node of the skin patch
+# @param name: name of the behavior node
+# @param rotation: rotation 
+# @param translation: translation
+def GeomagicDevice(parentNode=None, name=None, position=None):
+    name=parentNode.addChild(name)
+    name.addObject('MechanicalObject', template="Rigid3", name="DOFs", position=position)
+    name.addObject('MechanicalStateController', template="Rigid3", listening="true", mainDirection="-1.0 0.0 0.0", handleEventTriggersUpdate="true")
 
 
 # Controller for suture task training
@@ -158,9 +191,9 @@ class AddRemoveCarving(Sofa.Core.Controller):
         Sofa.Core.Controller.__init__(self, name, rootNode, CM)
         
         # Define spring force fields (SkinLeft-Needle; SkinRight-Needle; SkinLeft-SkinRight)
-        self.spring_force_field = rootNode.addObject("SpringForceField", name="LeftFF", object1 = suture_models.Skin.MO,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
-        self.spring_force_field_right = rootNode.addObject("SpringForceField", name="RightFF", object1 = suture_models.Skin.MO_right,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
-        self.spring_force_field_skins = rootNode.addObject("SpringForceField", name="SkinsFF", object1 = suture_models.Skin.MO,  object2=suture_models.Skin.MO_right)
+        self.spring_force_field = rootNode.addObject("StiffSpringForceField", name="LeftFF", object1 = suture_models.Skin.MO,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
+        self.spring_force_field_right = suture_models.Skin.itself.addObject("StiffSpringForceField", name="RightFF", object1 = suture_models.Skin.MO_right,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
+        self.spring_force_field_skins = suture_models.Skin.itself.addObject("StiffSpringForceField", name="SkinsFF", object1 = suture_models.Skin.MO,  object2=suture_models.Skin.MO_right)
 
         # Define contact listeners (SkinLeft-Needle; SkinRight-Needle)
         self.contact_listener = rootNode.addObject('ContactListener', name="LeftContact", collisionModel1 = suture_models.Skin.COLL, collisionModel2 = suture_models.SutureNeedle.COLL_FRONT)
@@ -223,13 +256,14 @@ class AddRemoveCarving(Sofa.Core.Controller):
 # Controller for suture task training
 class SutureTrainingContactController(Sofa.Core.Controller):
 
-    def __init__(self, name, rootNode, CM):
-        Sofa.Core.Controller.__init__(self, name, rootNode, CM)
+    def __init__(self, name, rootNode, CM, skin_left, skin_right):
+        Sofa.Core.Controller.__init__(self, name, rootNode, CM,skin_left, skin_right)
         
         # Define spring force fields (SkinLeft-Needle; SkinRight-Needle; SkinLeft-SkinRight)
-        self.spring_force_field = rootNode.addObject("SpringForceField", name="LeftFF", object1 = suture_models.Skin.MO,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
-        self.spring_force_field_right = rootNode.addObject("SpringForceField", name="RightFF", object1 = suture_models.Skin.MO_right,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
-        self.spring_force_field_skins = rootNode.addObject("SpringForceField", name="SkinsFF", object1 = suture_models.Skin.MO,  object2=suture_models.Skin.MO_right)
+        self.spring_force_field = skin_left.addObject("StiffSpringForceField", name="LeftFF", object1 = suture_models.Skin.MO,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
+        self.spring_force_field_right = skin_right.addObject("StiffSpringForceField", name="RightFF", object1 = suture_models.Skin.MO_right,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
+        self.spring_force_field_skins = skin_left.addObject("StiffSpringForceField", name="SkinsFF", object1 = suture_models.Skin.MO,  object2=suture_models.Skin.MO_right)
+        self.spring_force_field_skins_right = skin_right.addObject("StiffSpringForceField", name="SkinsRightFF", object1 = suture_models.Skin.MO_right,  object2=suture_models.Skin.MO)
 
         # Define contact listeners (SkinLeft-Needle; SkinRight-Needle)
         self.contact_listener = rootNode.addObject('ContactListener', name="LeftContact", collisionModel1 = suture_models.Skin.COLL, collisionModel2 = suture_models.SutureNeedle.COLL_FRONT)
@@ -248,12 +282,161 @@ class SutureTrainingContactController(Sofa.Core.Controller):
         self.root=rootNode
         self.CM=CM
 
+        self.points=0
+
+
+
         
     # Function called at each begin of animation step
     def onAnimateBeginEvent(self, event):
 
         #print("step")
         newMaterial="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45"
+        coll_indexes=self.contact_listener.getContactElements() 
+        coll_indexes_right=self.contact_listener_right.getContactElements() 
+
+        # In case of collision (SkinLeft-Needle):
+        if coll_indexes!=[] and self.finished==True:
+            
+            print("Contact on the left")
+            self.finished=False
+
+            coll_indexes2=coll_indexes[0]
+            coll_index_skin=coll_indexes2[1]
+
+            # Does it belong to box 1? If it does: 
+            if coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value:
+                print("Box 1")    
+
+                if self.springsCreated_left==False:
+
+                    # Do springs on the other side exist? If they do:
+                    if self.springsCreated_right==True:
+
+                        # Attach the two boxes: the old one and the new one
+                        self.contactLeft_attachBoxes(self.boxAttached.findData('indices').value, suture_models.Skin.sphere1Box.findData('indices').value) # Left then right
+
+                        # Then remove the previous springs.
+                        self.contactLeft_disattach()                    
+                        
+                    # Set this box as the last one attached
+                    self.boxAttached=suture_models.Skin.sphere1Box
+                    
+                    # Create springs SkinLeft-Back_Needle
+                    self.contactLeft_attach(self.boxAttached)
+                    
+                    # Change sphere color
+                    suture_models.sphere.M1.findData('material').value=newMaterial
+
+                    # Increase the points!
+                    self.points+=1
+
+                self.finished=True
+    
+            
+            # Does it belong to box 2? If it does: 
+            elif coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value:
+                print("Box 2")
+
+                if self.springsCreated_left==False:
+
+                    # Do springs on the other side exist? If they do:
+                    if self.springsCreated_right==True:
+
+                        # Attach the two boxes: the old one and the new one
+                        self.contactLeft_attachBoxes(self.boxAttached.findData('indices').value,suture_models.Skin.sphere2Box.findData('indices').value) # Left then right
+
+                        # Then remove the previous springs.
+                        self.contactLeft_disattach()          
+
+                    # Set this box as the last one attached
+                    self.boxAttached=suture_models.Skin.sphere2Box
+
+                    # Create springs SkinLeft-Back_Needle
+                    self.contactLeft_attach(self.boxAttached)
+
+                    # Change sphere color
+                    suture_models.sphere.M2.findData('material').value=newMaterial
+
+                    # Increase the points!
+                    self.points+=1
+
+                self.finished=True
+            
+            else:
+                print("No ball detected")
+                self.finished=True
+        
+            
+        # In case of collision (SkinRight-Needle):
+        if coll_indexes_right!=[] and self.finished==True:
+            print("Contact on the right")
+            self.finished=False
+
+            coll_indexes2=coll_indexes_right[0]
+            coll_index_skin=coll_indexes2[1]
+            # print("index", coll_index_skin)
+
+            # Does it belong to a box? If it does: 
+            if coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value:
+                print("Box 3")
+
+                if self.springsCreated_right==False:
+
+                    # Do springs on the other side exist? If they do:
+                    if self.springsCreated_left==True:
+                        # Attach the two boxes: the old one and the new one
+                        self.contactRight_attachBoxes(self.boxAttached.findData('indices').value, suture_models.Skin.sphere3Box.findData('indices').value) # Check
+    
+                        # Then remove the previous springs.
+                        self.contactRight_disattach()
+                        
+                    # Set this box as the last one attached
+                    self.boxAttached=suture_models.Skin.sphere3Box
+
+                    # Create springs SkinLeft-Back_Needle
+                    self.contactRight_attach(self.boxAttached)
+                    
+                    # Change sphere color
+                    suture_models.sphere.M3.findData('material').value=newMaterial
+                    
+                    # Increase the points!
+                    self.points+=1
+
+                self.finished=True
+    
+            # Does it belong to a box? If it does: 
+            elif coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value:
+                print("Box 4")
+
+                if self.springsCreated_right==False:
+
+                    # Do springs on the other side exist? If they do:
+                    if self.springsCreated_left==True:
+                        # Attach the two boxes: the old one and the new one
+                        self.contactRight_attachBoxes(self.boxAttached.findData('indices').value, suture_models.Skin.sphere4Box.findData('indices').value) # Check
+                        
+                        # Then remove the previous springs.
+                        self.contactRight_disattach()
+                    
+                    # Set this box as the last one attached
+                    self.boxAttached=suture_models.Skin.sphere4Box
+                    
+                    # Create springs SkinLeft-Back_Needle
+                    self.contactRight_attach(self.boxAttached)
+
+                    # Change sphere color
+                    suture_models.sphere.M4.findData('material').value=newMaterial
+                    
+                    # Increase the points!
+                    self.points+=1
+
+                self.finished=True
+            
+            else:
+                print("No ball detected")
+                self.finished=True
+
 
         if self.root.GeomagicDevice.findData('button2').value==1:
             if self.springsCreated_left==True:
@@ -261,159 +444,22 @@ class SutureTrainingContactController(Sofa.Core.Controller):
             if self.springsCreated_right==True:
                 self.contactLeft_disattach()
 
-        if self.root.GeomagicDevice.findData('button1').value==1:
-            self.root.animate = False
-            subprocess.call(['D:\Thesis\GUI\plotSuture.bat'])
-            self.root.quit()
-            
+        # if self.root.GeomagicDevice.findData('button1').value==1:
+        #     self.root.animate = False
+        #     Config=open('Config.txt')
+        #     for line in Config:
+        #         pass
+        #     user_name = line
+        #     Config.close()
 
-        # In case of collision (SkinLeft-Needle):
-        if self.contact_listener.getNumberOfContacts()!=0 and self.finished==True:
-            
-            self.finished=False
-            print("Contact on the left")
-                  
-            # Save collision element
-            try: 
-                coll_indexes=self.contact_listener.getContactElements() 
-                coll_indexes2=coll_indexes[0]
-                coll_index_skin=coll_indexes2[1]
-                print("index", coll_index_skin)
+        #     fileName=f"{user_name}.txt"
+        #     User = open(fileName, 'a')
+        #     var = f"{self.points}"
+        #     User.write(var)
+        #     User.close()
 
-                # Does it belong to box 1? If it does: 
-                if coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value:
-                    print("Box 1")    
-
-
-                    if self.springsCreated_left==False:
-
-                        # Do springs on the other side exist? If they do:
-                        if self.springsCreated_right==True:
-
-                            # Attach the two boxes: the old one and the new one
-                            self.attachBoxes(suture_models.Skin.sphere1Box.findData('indices').value, self.boxAttached.findData('indices').value) # Left then right
-
-                            # Then remove the previous springs.
-                            self.contactLeft_disattach()                    
-                            
-                        # Set this box as the last one attached
-                        self.boxAttached=suture_models.Skin.sphere1Box
-                        
-                        # Create springs SkinLeft-Back_Needle
-                        self.contactLeft_attach(self.boxAttached)
-
-                        suture_models.sphere.M1.findData('material').value=newMaterial
-
-                        # This is the last sphere that needs to be reached: after that, clear the FF
-                        # self.contactRight_disattach()
-
-                    self.finished=True
-        
-                
-                # Does it belong to box 2? If it does: 
-                elif coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value:
-                    print("Box 2")
-
-                    if self.springsCreated_left==False:
-
-                        # Do springs on the other side exist? If they do:
-                        if self.springsCreated_right==True:
-                            # Attach the two boxes: the old one and the new one
-                            self.attachBoxes(suture_models.Skin.sphere2Box.findData('indices').value, self.boxAttached.findData('indices').value) # Left then right
-                            
-                            # Then remove the previous springs.
-                            self.contactLeft_disattach()        
-                            print("done")          
-
-                        # Set this box as the last one attached
-                        self.boxAttached=suture_models.Skin.sphere2Box
-
-                        # Create springs SkinLeft-Back_Needle
-                        self.contactLeft_attach(self.boxAttached)
-
-                        suture_models.sphere.M2.findData('material').value=newMaterial
-
-                    self.finished=True
-                
-                else:
-                    print("No ball detected")
-                    self.finished=True
-
-            except:
-                print("Too quick")
-                pass
-
-            
-            
-        #label .nextif
-        # In case of collision (SkinRight-Needle):
-        if self.contact_listener_right.getNumberOfContacts()!=0 and self.finished==True:
-            
-            self.finished=False
-            print("Contact on the right")
-            
-            # Save collision element
-            try: 
-                coll_indexes=self.contact_listener_right.getContactElements() 
-                coll_indexes2=coll_indexes[0]
-                coll_index_skin=coll_indexes2[1]
-                print("index", coll_index_skin)
-
-                # Does it belong to a box? If it does: 
-                if coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value:
-                    print("Box 3")
-
-                    if self.springsCreated_right==False:
-
-                        # Do springs on the other side exist? If they do:
-                        if self.springsCreated_left==True:
-                            # Attach the two boxes: the old one and the new one
-                            self.attachBoxes(self.boxAttached.findData('indices').value, suture_models.Skin.sphere3Box.findData('indices').value) # Check
-        
-                            # Then remove the previous springs.
-                            self.contactRight_disattach()
-                            
-                        # Set this box as the last one attached
-                        self.boxAttached=suture_models.Skin.sphere3Box
-
-                        # Create springs SkinLeft-Back_Needle
-                        self.contactRight_attach(self.boxAttached)
-                        
-                        suture_models.sphere.M3.findData('material').value=newMaterial
-    
-                    self.finished=True
-        
-                # Does it belong to a box? If it does: 
-                elif coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value:
-                    print("Box 4")
-
-                    if self.springsCreated_right==False:
-
-                        # Do springs on the other side exist? If they do:
-                        if self.springsCreated_left==True:
-                            # Attach the two boxes: the old one and the new one
-                            self.attachBoxes(self.boxAttached.findData('indices').value, suture_models.Skin.sphere4Box.findData('indices').value) # Check
-                            
-                            # Then remove the previous springs.
-                            self.contactRight_disattach()
-                        
-                        # Set this box as the last one attached
-                        self.boxAttached=suture_models.Skin.sphere4Box
-                        
-                        # Create springs SkinLeft-Back_Needle
-                        self.contactRight_attach(self.boxAttached)
-
-                        suture_models.sphere.M4.findData('material').value=newMaterial
-
-                    self.finished=True
-                
-                else:
-                    print("No ball detected")
-                    self.finished=True
-
-            except:
-                print("Too quick")
-                pass
+        #     subprocess.call(['D:\Thesis\GUI\plotSuture.bat'])
+        #     self.root.quit()
 
             
         
@@ -422,12 +468,20 @@ class SutureTrainingContactController(Sofa.Core.Controller):
 
 
 
-    def attachBoxes(self, indicesBox1, indicesBox2):
+    def contactRight_attachBoxes(self, indicesBox1, indicesBox2):
         print("Attach two boxes")
 
         # Create springs
-        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=50, dampingFactor=5, restLength=1) for i, j in zip(indicesBox1,indicesBox2)] 
+        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=1) for i, j in zip(indicesBox1,indicesBox2)] 
         self.spring_force_field_skins.addSprings(springs)
+        print("Springs added between skins")
+
+    def contactLeft_attachBoxes(self, indicesBox1, indicesBox2):
+        print("Attach two boxes")
+
+        # Create springs
+        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=1) for i, j in zip(indicesBox1,indicesBox2)] 
+        self.spring_force_field_skins_right.addSprings(springs)
         print("Springs added between skins")
 
     def contactLeft_attach(self, box):
@@ -437,7 +491,7 @@ class SutureTrainingContactController(Sofa.Core.Controller):
 
         # Create springs
         print("Create springs")
-        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=0, springStiffness=50, dampingFactor=5, restLength=1) for i in indicesBox] 
+        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=0, springStiffness=stiffness_springNeedle, dampingFactor=1, restLength=1) for i in indicesBox] 
         self.spring_force_field.addSprings(springs)
         self.springsCreated_left=True
         print("Springs created between needle and left skin")
@@ -447,10 +501,11 @@ class SutureTrainingContactController(Sofa.Core.Controller):
         
         N_Indices=len(self.boxAttached.findData('indices').value)
         print("The old box has", N_Indices, "indices")
-
+        # for i in range(100):
+        #     self.spring_force_field_right.removeSpring(i)
         self.spring_force_field_right.clear()
 
-        print("removed")
+        print("Springs removed")
         self.springsCreated_right=False
 
     def contactRight_attach(self, box):
@@ -460,7 +515,7 @@ class SutureTrainingContactController(Sofa.Core.Controller):
 
         # Create springs
         print("Create springs")
-        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=0, springStiffness=50, dampingFactor=5, restLength=1) for i in indicesBox] 
+        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=0, springStiffness=stiffness_springNeedle, dampingFactor=1, restLength=1) for i in indicesBox] 
         self.spring_force_field_right.addSprings(springs)
         self.springsCreated_right=True
         print("Springs created between needle and right skin")
@@ -470,10 +525,11 @@ class SutureTrainingContactController(Sofa.Core.Controller):
         
         N_Indices=len(self.boxAttached.findData('indices').value)
         # print("The old box has", N_Indices, "indices")
-
+        # for i in range(100):
+        #     self.spring_force_field.removeSpring(i)
         self.spring_force_field.clear()
 
-        print("removed")
+        print("Springs removed")
         self.springsCreated_left=False
 
 

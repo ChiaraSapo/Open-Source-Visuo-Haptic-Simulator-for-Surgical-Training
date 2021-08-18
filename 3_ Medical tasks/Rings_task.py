@@ -3,6 +3,7 @@ import Sofa
 import numpy as np
 import Sofa.SofaDeformable
 import suture_models
+import incision_models
 import time
 import subprocess
 
@@ -66,6 +67,21 @@ def main():
 
 def createScene(root):
 
+    # Read user name
+    Config=open('D:\Thesis\GUI\Config.txt')
+    for line in Config:
+        pass
+    user_name = line
+    Config.close()
+
+    # Read user data (last lines of the file)
+    fileName=f"D:\Thesis\GUI\{user_name}.txt"
+    User=open(fileName)
+    lines1=User.readlines()
+    lines=lines1[-5:] #put 4 LATER
+    station_type=lines[3]
+    User.close()
+
     # Define root properties
     root.gravity=[0, 0, -5]
     root.dt=0.01
@@ -75,7 +91,7 @@ def createScene(root):
     #root.addObject('VisualStyle', displayFlags="showInteractionForceFields ")
     root.addObject('OglLabel', label="RINGS TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
     root.addObject('OglLabel', label="Pass through the rings without touching them,", x=20, y=70, fontsize=20, selectContrastingColor="1")
-    root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
+    root.addObject('OglLabel', label="starting from the one closest to you", x=20, y=100, fontsize=20, selectContrastingColor="1")
 
 
     # Collision pipeline
@@ -96,42 +112,60 @@ def createScene(root):
     root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -1 -0.000108372 0.908378")
 
     # Add skin
-    suture_models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
-    scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 10, 20, 0.1], borderBox=[7, -0.1, -2, 10, 20, 1], 
-    importFile=skinVolume_fileName,  task="Suture")
+    skin_left=suture_models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
+    scale3d=scale3d_skin, fixingBox=[-0.1, -0.1, -2, 10, 20, 0.1])
 
-    suture_models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[11, 0, 0], 
-    scale3d=scale3d_skin, fixingBox=[11, -0.1, -2, 22, 20, 0.1], borderBox=[11, -0.1, -2, 14, 20, 1],
-    importFile=skinVolume_fileName,  side=1, task="Suture") 
+    skin_right=suture_models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[11, 0, 0], 
+    scale3d=scale3d_skin, fixingBox=[11, -0.1, -2, 22, 20, 0.1],
+    side=1) 
 
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
     if geomagic==True:
 
-        root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", 
-        scale="1.5", drawDeviceFrame="0", drawDevice="0", positionBase="10 11 10",  orientationBase="0.707 0 0 0.707", handleEventTriggersUpdate=True, emitButtonEvent=True, button2=True)
-        # Last: tilt avanti e indietro 
-        suture_models.GeomagicDevice(parentNode=root, name='Omni')
+        if station_type=="Double\n":
+            root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="1", 
+            drawDevice="1", positionBase="20 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
+
+            root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
+            drawDevice="1", positionBase="0 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
+
+            GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
+            GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
+
+        else: 
+            root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="1", 
+            drawDevice="0", positionBase="11 10 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
+            
+            GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
 
     #############################################################################################################
 
-    # # Add training rings
-    suture_models.ring(parentNode=root, name="Ring1", x=7, y=3, z=4, scale3d="1.5 1.5 1.5",  M="M1")
-    suture_models.ring(parentNode=root, name="Ring2", x=7, y=11, z=4, scale3d="1.5 1.5 1.5",  M="M2")
-    suture_models.ring(parentNode=root, name="Ring3", x=13, y=7, z=4, scale3d="1.5 1.5 1.5",  M="M3")
-    suture_models.ring(parentNode=root, name="Ring4", x=13, y=15, z=4, scale3d="1.5 1.5 1.5", M="M4")
+    # Add training rings
+    suture_models.ring(parentNode=root, name="Ring1", x=7, y=4, z=4, scale3d="1.5 1.5 1.5",  M="M1")
+    suture_models.ring(parentNode=root, name="Ring2", x=7, y=12, z=4, scale3d="1.5 1.5 1.5",  M="M2")
+    suture_models.ring(parentNode=root, name="Ring3", x=13, y=8, z=4, scale3d="1.5 1.5 1.5",  M="M3")
+    suture_models.ring(parentNode=root, name="Ring4", x=13, y=16, z=4, scale3d="1.5 1.5 1.5", M="M4")
 
     suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=True, file1="RingsTask_pos", file2="RingsTask_vel", file3="RingsTask_force",  geomagic=geomagic, dx=0, dy=0, dz=10) # To fall on sphere: dx=12, dy=3, dz=6
+    #incision_models.Scalpel(parentNode=root, name='Scalpel',  geomagic=geomagic)
 
     root.addObject(ChangeColorAtContactController(name="MyController", rootNode=root))
-
-    print(suture_models.StraightNeedle.Monitor.findData('showTrajectories').value)
-
+    #root.addObject(ButtonCheckControllerModifyData(name="MyController", rootNode=root))
+    #root.addObject(ButtonCheckControllerAddNeedle(name="MyController", rootNode=root))
 
 
     return root
 
-
+## This function defines a geomagic
+# @param parentNode: parent node of the skin patch
+# @param name: name of the behavior node
+# @param rotation: rotation 
+# @param translation: translation
+def GeomagicDevice(parentNode=None, name=None, position=None):
+    name=parentNode.addChild(name)
+    name.addObject('MechanicalObject', template="Rigid3", name="DOFs", position=position)
+    name.addObject('MechanicalStateController', template="Rigid3", listening="true", mainDirection="-1.0 0.0 0.0")
 
 # Controller for suture task training
 class ChangeColorAtContactController(Sofa.Core.Controller):
@@ -160,6 +194,9 @@ class ChangeColorAtContactController(Sofa.Core.Controller):
                 suture_models.StraightNeedle.Monitor.findData('showTrajectories').value=1
         
         if self.root.GeomagicDevice.findData('button1').value==1:
+            # self.root.animate = False
+            # self.root.init()
+            # self.root.animate = True
             self.root.animate = False
             subprocess.call(['D:\Thesis\GUI\plotRings.bat'])
             self.root.quit()
@@ -207,13 +244,13 @@ class ChangeColorAtContactController(Sofa.Core.Controller):
         
 
 
-
-class ButtonCheckController(Sofa.Core.Controller):
+class ButtonCheckControllerModifyData(Sofa.Core.Controller):
 
     def __init__(self, name, rootNode):
         Sofa.Core.Controller.__init__(self, name, rootNode)
         
         self.root=rootNode
+        self.first=1
 
     # Function called at each begin of animation step
     def onAnimateBeginEvent(self, event):
@@ -230,6 +267,59 @@ class ButtonCheckController(Sofa.Core.Controller):
 
             suture_models.SutureNeedle.MO_TAG.reinit()
             suture_models.SutureNeedle.RS.reinit()
+
+
+
+class ButtonCheckControllerAddNeedle(Sofa.Core.Controller):
+
+    def __init__(self, name, rootNode):
+        Sofa.Core.Controller.__init__(self, name, rootNode)
+        
+        self.root=rootNode
+        self.first=1
+
+    # Function called at each begin of animation step
+    def onAnimateBeginEvent(self, event):
+
+        #if self.root.GeomagicDevice.findData('button2').value!=0: # If button is toggled
+        if self.first==1:
+            
+            self.root.removeChild("StraightNeedle")
+
+            self.StraightNeedle()
+            self.first=0
+
+    def StraightNeedle(self): 
+        # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
+
+        StraightNeedle2=self.root.addChild('StraightNeedle2')
+        StraightNeedle2.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
+        StraightNeedle2.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
+        StraightNeedle2.addObject('MechanicalObject', name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d=[0.1, 0.4, 0.4])
+        StraightNeedle2.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
+        StraightNeedle2.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.1", activate="true")# Decide forceCoef value better
+        #StraightNeedle2.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale3d=[0.1, 0.4, 0.4] ,dx=0, dy=5, dz=10)
+        # Mass gives problems: keep at 1
+        StraightNeedle2.addObject('UniformMass', totalMass=1)
+        StraightNeedle2.addObject('UncoupledConstraintCorrection')
+        StraightNeedle2.init()
+
+
+        Visu=StraightNeedle2.addChild('Visu')
+        Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="C:\sofa\src\Chiara\mesh\straight_needle.obj", scale3d=[0.1, 0.4, 0.4],  translation=[0, 0, 10] , rotation=[0, 90, 0])
+        Visu.addObject('OglModel' ,name="Visual" ,src="@meshLoader_3",  color="0 0.5 0.796")
+        Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
+        #Visu.init()
+        Sofa.Simulation.initVisual(Visu)
+        
+        Surf=StraightNeedle2.addChild('Surf')
+        Surf.addObject('MeshObjLoader' ,filename="C:\sofa\src\Chiara\mesh\straight_needle.obj" ,scale3d=[0.1, 0.4, 0.4], name="loader", translation=[0, 0, 10] , rotation=[0, 90, 0])
+        Surf.addObject('MeshTopology' ,src="@loader")
+        Surf.addObject('MechanicalObject',  name="SurfMO", src="@loader", translation=[0,0,-11])#, rotation=[90, 0, 0])
+        Surf.addObject('PointCollisionModel')
+        Surf.addObject('RigidMapping')
+        Surf.init()
+
 
 
 

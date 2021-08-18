@@ -1,20 +1,20 @@
 # Data
 
 scale3d_skin="0.25 0.65 0.1"
-scale3d_needle="5 5 5"
+scale3d_needle="3 3 3"
 scale3d_thread="0.5 0.5 0.5"
 
 pointPosition_onNeedle="-6.98 0.02 0.05" #N: 5,5,5
 
 GeomagicPosition="0 20 15"
-skinVolume_fileName="mesh\skin_volume_403020_05" #03 troppo lento
-needleVolume_fileName="mesh\suture_needle.obj"
-threadVolume_fileName="mesh\threadCh2"
+skinVolume_fileName="C:\sofa\src\Chiara\mesh\skin_volume_403020_05" #03 troppo lento
+needleVolume_fileName="C:\sofa\src\Chiara\mesh\suture_needle.obj"
+threadVolume_fileName="C:\sofa\src\Chiara\mesh\threadCh2"
 
 # Data
-skin_youngModulus=1500#300
+skin_youngModulus=4000#300
 thread_youngModulus=2000
-skin_poissonRatio=0.49
+skin_poissonRatio=0.1
 thread_poissonRatio=0.8
 
 # Training sphere
@@ -70,11 +70,23 @@ def ring(parentNode=None, name=None, x=0, y=0, z=0, scale3d=[0.0, 0.0, 0.0],  M=
         ring.C4=name.Surf.Torus2Triangle.getLinkPath()
         ring.V4=name.Visu.VisualOGL
     
-
+## This function defines a skin patch node with behavior/collision/visual models
+# @param parentNode: parent node of the skin patch
+# @param name: name of the behavior node
+# @param rotation: rotation 
+# @param translation: translation
+# @param scale3d: scale of the skin along all directions
+# @param fixingBox: vertices of the box that fixes the skin base
+# @param side: Can be set to 0: left patch, 1: right patch. 
+# @param task: REMOVE
+# @param borderBox1: vertices of box1 that computes indices along the border
+# @param borderBox2: vertices of box2 that computes indices along the border
+# @param borderBox3: vertices of box3 that computes indices along the border
+# @param borderBox4: vertices of box4 that computes indices along the border
 
 def Skin(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
-scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], indicesBox=[0.0, 0.0, 0.0], borderBox=[0.0, 0.0, 0.0], importFile=None, 
-side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.0, 0.0],borderBox3=[0.0, 0.0, 0.0],borderBox4=[0.0, 0.0, 0.0]):
+scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0],
+side=0, borderBox1=[0.0, 0.0, 0.0], borderBox2=[0.0, 0.0, 0.0],borderBox3=[0.0, 0.0, 0.0],borderBox4=[0.0, 0.0, 0.0]):
 
     name=parentNode.addChild(name)
     
@@ -82,11 +94,10 @@ side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.0, 0.0],borderB
     # Solvers
     name.addObject('EulerImplicitSolver', name="odesolver", rayleighStiffness="0.01", rayleighMass="0.01") #added the 2 params
     name.addObject('CGLinearSolver', iterations="25", name="EpiLinearsolver", tolerance="1.0e-9", threshold="1.0e-9")
-    #name.addObject('SparseLDLSolver')
 
     # Volumetric mesh loader
 
-    name.addObject('MeshGmshLoader', name='volumeLoader', filename=importFile, scale3d=scale3d)
+    name.addObject('MeshGmshLoader', name='volumeLoader', filename="C:\sofa\src\Chiara\mesh\skin_volume_403020_05", scale3d=scale3d)
 
     # Tetrahedra container
     name.addObject('TetrahedronSetTopologyContainer', src='@volumeLoader', name='TetraContainer')
@@ -105,15 +116,19 @@ side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.0, 0.0],borderB
     # Fixed box for constraints
     boxROI=name.addObject('BoxROI', name='boxROI', box=fixingBox, drawBoxes='true', computeTriangles='true')
     name.addObject('RestShapeSpringsForceField', name='rest', points='@boxROI.indices', stiffness='1e12', angularStiffness='1e12')
-
-    # Border box
-    name.addObject('BoxROI', name='borderBox', box=borderBox, drawBoxes='true')
     
-    name.addObject('BoxROI', name='sphere1Box', box=[8-2, 3-2, -0.1, 8+2, 3+2, 3], drawBoxes='true', computeTriangles='true')
-    name.addObject('BoxROI', name='sphere2Box', box=[8-2, 13-2, -0.1, 8+2, 13+2, 3], drawBoxes='true', computeTriangles='true')
-    name.addObject('BoxROI', name='sphere3Box', box=[12-2, 7-2, -0.1, 12+2, 7+2, 3], drawBoxes='true', computeTriangles='true')
-    name.addObject('BoxROI', name='sphere4Box', box=[12-2, 17-2, -0.1, 12+2, 17+2, 3], drawBoxes='true', computeTriangles='true')  
-
+    if borderBox1!=[0.0, 0.0, 0.0] or borderBox3!=[0.0, 0.0, 0.0]:
+        if side==0: 
+            name.addObject('BoxROI', name='sphere1Box', box=[8-2, 3-2, -0.1, 8+2, 3+2, 3], drawBoxes='true', computeTriangles='true')
+            name.addObject('BoxROI', name='sphere2Box', box=[8-2, 13-2, -0.1, 8+2, 13+2, 3], drawBoxes='true', computeTriangles='true')
+            #name.addObject('BoxROI', name='sphere3Box', box=[12-2, 7-2, -0.1, 12+2, 7+2, 3], drawBoxes='true', computeTriangles='true')
+            #name.addObject('BoxROI', name='sphere4Box', box=[12-2, 17-2, -0.1, 12+2, 17+2, 3], drawBoxes='true', computeTriangles='true')  
+        else:
+            #name.addObject('BoxROI', name='sphere1Box', box=[8-2, 3-2, -0.1, 8+2, 3+2, 3], drawBoxes='true', computeTriangles='true')
+            #name.addObject('BoxROI', name='sphere2Box', box=[8-2, 13-2, -0.1, 8+2, 13+2, 3], drawBoxes='true', computeTriangles='true')
+            name.addObject('BoxROI', name='sphere3Box', box=[12-2, 7-2, -0.1, 12+2, 7+2, 3], drawBoxes='true', computeTriangles='true')
+            name.addObject('BoxROI', name='sphere4Box', box=[12-2, 17-2, -0.1, 12+2, 17+2, 3], drawBoxes='true', computeTriangles='true')  
+    
     #################### COLLISION ##########################
 
     SkinColl = name.addChild('SkinColl')
@@ -128,8 +143,9 @@ side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.0, 0.0],borderB
     # Types of collision
     SkinColl.addObject('TriangleCollisionModel', name="TriangleCollisionSkin", tags="CarvingSurface")
 
-    #SkinColl.addObject('LineCollisionModel', name="LineCollisionSkin")
-    #SkinColl.addObject('PointCollisionModel', name="PointCollisionSkin") 
+    # JUST UNCOMMENTED
+    SkinColl.addObject('LineCollisionModel', name="LineCollisionSkin")
+    SkinColl.addObject('PointCollisionModel', name="PointCollisionSkin") 
     #SkinColl.addObject('IdentityMapping')
 
     #################### VISUALIZATION ########################
@@ -147,20 +163,24 @@ side=0, task=None, borderBox1=[0.0, 0.0, 0.0],borderBox2=[0.0, 0.0, 0.0],borderB
         Skin.MO=name.SkinMechObj.getLinkPath()
         Skin.COLL=name.SkinColl.TriangleCollisionSkin.getLinkPath()
         Skin.COLL_TAG=name.SkinColl.TriangleCollisionSkin
-        Skin.borderBox= name.borderBox
-        Skin.sphere1Box=name.sphere1Box
-        Skin.sphere2Box=name.sphere2Box
+        if borderBox1!=[0.0, 0.0, 0.0]:
+            Skin.sphere1Box=name.sphere1Box
+            Skin.sphere2Box=name.sphere2Box
 
     if side==1: # right
         Skin.itself_right=name.getLinkPath()
         Skin.MO_right=name.SkinMechObj.getLinkPath()
         Skin.COLL_right=name.SkinColl.TriangleCollisionSkin.getLinkPath()
         Skin.COLL_TAG_right=name.SkinColl.TriangleCollisionSkin
-        Skin.borderBox_right = name.borderBox
-        Skin.sphere3Box=name.sphere3Box
-        Skin.sphere4Box=name.sphere4Box
+        if borderBox3!=[0.0, 0.0, 0.0]:
+            Skin.sphere3Box=name.sphere3Box
+            Skin.sphere4Box=name.sphere4Box
 
     Skin.CONTAINER=name.TetraContainer.getLinkPath()
+
+    return name
+
+
 
 def Thread(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
 scale3d=[0.0, 0.0, 0.0], fixingBox=[0.0, 0.0, 0.0], importFile=None, geomagic=False):
@@ -211,12 +231,15 @@ scale3d=[0.0, 0.0, 0.0], fixingBox=[0.0, 0.0, 0.0], importFile=None, geomagic=Fa
     ThreadVisu.addObject('OglModel', template="Vec3d", name="Visual", color="1 0.75 0.796", material="Default Diffuse 1 0 0 1 1 Ambient 1 0 0 0.2 1 Specular 0 0 0 1 1 Emissive 0 0 0 1 1 Shininess 0 45 ")
     ThreadVisu.addObject('IdentityMapping', template="Vec3d,Vec3d", name="default12", input="@..", output="@Visual" )
 
-
-def GeomagicDevice(parentNode=None, name=None):
+## This function defines a geomagic
+# @param parentNode: parent node of the skin patch
+# @param name: name of the behavior node
+# @param rotation: rotation 
+# @param translation: translation
+def GeomagicDevice(parentNode=None, name=None, position=None):
     name=parentNode.addChild(name)
-    name.addObject('MechanicalObject', template="Rigid3", name="DOFs", position="@GeomagicDevice.positionDevice")
+    name.addObject('MechanicalObject', template="Rigid3", name="DOFs", position=position)
     name.addObject('MechanicalStateController', template="Rigid3", listening="true", mainDirection="-1.0 0.0 0.0")
-
 
 def SutureNeedleOld(parentNode=None, name=None, rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0],
 scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=False, geomagic=False):
@@ -231,7 +254,7 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=F
     if geomagic==True:
         name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d=scale3d, rotation="0 0 10" ) #, src="@instrumentMeshLoader")
         name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.1", activate="true")# Decide forceCoef value better
+        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.2", activate="true")# Decide forceCoef value better
     else: 
         name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', translation=translation, scale3d=scale3d) 
         #src="@instrumentMeshLoader": removing this you also remove that horrible effect you had, you're covering the secret........
@@ -289,27 +312,44 @@ scale3d=[0.0, 0.0, 0.0],  fixingBox=[0.0, 0.0, 0.0], importFile=None,  carving=F
     SutureNeedle.COLL_BACK=name.InstrumentColl_Back.SphereCollisionInstrument2.getLinkPath()
 
 
-def SutureNeedle(parentNode=None, name=None, dx=0, dy=0, dz=0, scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0],
-geomagic=False, monitor=False, file1=None, file2=None, file3=None): 
+## This function defines a suture needle node with behavior/collision/visual models
+# @param parentNode: parent node of the suture needle
+# @param name: name of the behavior node
+# @param dx: x position of the needle without the geomagic 
+# @param dy: y position of the needle without the geomagic 
+# @param dz: z position of the needle without the geomagic 
+# @param scale3d: scale of the needle along all directions
+# @param geomagic: if True, the needle is positioned on the Geomagic end effector
+# @param position: position of the geomagic end effector
+# @param external_rest_shape: rest shape of the geomagic end effector
+# @param monitor: if True, saves position, velocity and force of the needle 
+# @param file1: name of the file that saves positions
+# @param file2: name of the file that saves velocities
+# @param file3: name of the file that saves forces
+
+def SutureNeedle(parentNode=None, name=None, dx=0, dy=0, dz=0, scale3d=[0.0, 0.0, 0.0], 
+geomagic=False, position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs', # position and external_rest_shape are set by default for the single station case 
+monitor=False, file1=None, file2=None, file3=None): # If plots are desired: save results in three different files
+    rz=120
     # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
 
     name=parentNode.addChild(name)
     name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
     name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
     if geomagic==True:
-        name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d="3", rotation="0 0 10" ) #, src="@instrumentMeshLoader")
-        name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='100', angularStiffness='100', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.05", activate="true")# Decide forceCoef value better
+        name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position=position, scale3d="2", rotation="0 0 10" ) #, src="@instrumentMeshLoader")
+        name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='100', angularStiffness='100', external_rest_shape=external_rest_shape, points='0', external_points='0') 
+        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.007", activate="true")# Decide forceCoef value better
         SutureNeedle.RS=name.InstrumentRestShape
     else: 
-        name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale="3.0" ,dx=dx, dy=dy, dz=dz)
+        name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale="2.0" ,dx=dx, dy=dy, dz=dz)
     name.addObject('UniformMass' , totalMass="3")
     name.addObject('UncoupledConstraintCorrection')
 
     Visu=name.addChild('Visu')
-    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/Suture_needle.obj", scale="3.0", handleSeams="1" )
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/Suture_needle.obj", scale="2.0", handleSeams="1" )
     if geomagic==True:
-        Visu.addObject('OglModel',name="Visual", src='@meshLoader_3', rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0",  color="0 0.5 0.796")
+        Visu.addObject('OglModel',name="Visual", src='@meshLoader_3', rx="-10", ry="160", rz=rz,  dz="0", dx="0", dy="0",  color="0 0.5 0.796")
     else:
         Visu.addObject('OglModel' ,name="Visual" ,src="@meshLoader_3",  color="0 0.5 0.796")
     Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
@@ -318,38 +358,38 @@ geomagic=False, monitor=False, file1=None, file2=None, file3=None):
     Surf.addObject('MeshObjLoader' ,filename="mesh/Suture_needle.obj" ,name="loader" )
     Surf.addObject('MeshTopology' ,src="@loader")
     if geomagic==True:
-        Surf.addObject('MechanicalObject' ,src="@loader", scale="3.0", rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0")
+        Surf.addObject('MechanicalObject' ,src="@loader", scale="2.0", rx="-10", ry="160", rz=rz,  dz="0", dx="0", dy="0") #rz=180
     else: 
-        Surf.addObject('MechanicalObject' ,src="@loader", scale="3.0")#, dx="8", dy="3", dz="6")
+        Surf.addObject('MechanicalObject' ,src="@loader", scale="2.0")#, dx="8", dy="3", dz="6")
     #Surf.addObject('TriangleCollisionModel', name="Torus2Triangle") # DO NOT UNCOMMENT
     #Surf.addObject('LineCollisionModel', name="Torus2Line" ) # DO NOT UNCOMMENT
     Surf.addObject('PointCollisionModel' ,name="Torus2Point")
     Surf.addObject('RigidMapping')
 
 
-    collFront = name.addChild('collFront')
+    collFront = name.addChild('collFront') #"-4.2 0.02 -0.25" for scale5
     if geomagic==True:
-        collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="-4.2 0.02 -0.25", rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0")
+        collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="-2.9 0.02 -0.25", rx="-10", ry="160", rz=rz,  dz="0", dx="0", dy="0")
     else:
         collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="-4.2 0.02 -0.25")
 
-    collFront.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument", contactStiffness="1", tags="CarvingTool")
+    collFront.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument", contactStiffness="2", tags="CarvingTool")
 
 
     collFront.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
 
-    collBack = name.addChild('collBack')
+    collBack = name.addChild('collBack') #"0 0.007 -0.25" for scale5
     if geomagic==True:
-        collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0.007 -0.25", rx="-10", ry="160", rz="180",  dz="-4", dx="0", dy="0")
+        collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0.007 -0.25", rx="-10", ry="160", rz=rz,  dz="0", dx="0", dy="0")
     else:
         collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0.007 -0.25")
-    collBack.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument2", contactStiffness="1")
+    collBack.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument2", contactStiffness="2")
     collBack.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
     
     if monitor==True:
         collBack.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true")
         collBack.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
-        collBack.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportForces="true")
+        collBack.addObject("Monitor", name=file3, indices="0", listening="1", showForces="1", ExportForces="true")
 
     SutureNeedle.ITSELF=name
     SutureNeedle.COLL=name.Surf.Torus2Point.getLinkPath()
@@ -372,7 +412,7 @@ geomagic=False, monitor=False, file1=None, file2=None, file3=None):
     if geomagic==True:
         name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale3d=scale3d) #, src="@instrumentMeshLoader")
         name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='1000', angularStiffness='1000', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.1", activate="true")# Decide forceCoef value better
+        name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.07", activate="true")# Decide forceCoef value better
         SutureNeedle.RS=name.InstrumentRestShape
     else: 
         name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale3d=scale3d ,dx=dx, dy=dy, dz=dz)
@@ -380,7 +420,7 @@ geomagic=False, monitor=False, file1=None, file2=None, file3=None):
     name.addObject('UncoupledConstraintCorrection')
 
     Visu=name.addChild('Visu')
-    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/straight_needle.obj", scale3d=scale3d, handleSeams="1" , translation=[0, 0, 10] , rotation=[0, 90, 0])
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="C:\sofa\src\Chiara\mesh\straight_needle.obj", scale3d=scale3d, handleSeams="1" , translation=[0, 0, 10] , rotation=[0, 90, 0])
     if geomagic==True:
         Visu.addObject('OglModel',name="Visual", src='@meshLoader_3',  color="0 0.5 0.796", translation=[0,0,-11])#, rotation=[90, 0, 0])#, dz=3)
     else:
@@ -388,7 +428,7 @@ geomagic=False, monitor=False, file1=None, file2=None, file3=None):
     Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
     
     Surf=name.addChild('Surf')
-    Surf.addObject('MeshObjLoader' ,filename="mesh/straight_needle.obj" ,scale3d=scale3d, name="loader", translation=[0, 0, 10] , rotation=[0, 90, 0])
+    Surf.addObject('MeshObjLoader' ,filename="C:\sofa\src\Chiara\mesh\straight_needle.obj" ,scale3d=scale3d, name="loader", translation=[0, 0, 10] , rotation=[0, 90, 0])
     Surf.addObject('MeshTopology' ,src="@loader")
     #if geomagic==True:
     Surf.addObject('MechanicalObject' ,src="@loader", translation=[0,0,-11])#, rotation=[90, 0, 0])
@@ -413,10 +453,6 @@ geomagic=False, monitor=False, file1=None, file2=None, file3=None):
     StraightNeedle.POS=name.InstrumentMechObject.findData('position').value
   
     StraightNeedle.MO_TAG=name.InstrumentMechObject
-
-           
-
-
 
 
 
