@@ -53,9 +53,7 @@ def main():
         Sofa.Gui.GUIManager.MainLoop(root)
         Sofa.Gui.GUIManager.closeGUI()
 
-
 ## This function creates the graph node
-
 def createScene(root):
 
     # Read user name
@@ -115,18 +113,23 @@ def createScene(root):
     sphere3Box=[x[2]-2, y[2]-2, -0.1, x[2]+2, y[2]+2, 3], sphere4Box=[x[3]-2, y[3]-2, -0.1, x[3]+2, y[3]+2, 3], side=1) 
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
-    root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="0", 
-    drawDevice="0", positionBase="10 10 10",  orientationBase="0.707 0 0 0.707", forceFeedBack="@SutureNeedle/LCPFFNeedle")
-    
-    GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
+    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="1", 
+    drawDevice="1", positionBase="20 20 0",  orientationBase="0.707 0 0 0.707", forceFeedBack="@SutureNeedle/LCPFFNeedle")
 
-    # Add needle
-    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1="SutureTask_pos", file2="SutureTask_vel", file3="SutureTask_force", position="@GeomagicDevice.positionDevice") # To fall on sphere: dx=12, dy=3, dz=6
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
+    drawDevice="1", positionBase="0 20 0",  orientationBase="0.707 0 0 0.707", forceFeedBack="@SutureNeedleLeft/LCPFFNeedle")
+
+    GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
+    GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
+
+    # Add needles
+    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1="SutureTask_pos", file2="SutureTask_vel", file3="SutureTask_force", position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs') # To fall on sphere: dx=12, dy=3, dz=
+    suture_models.SutureNeedleLeft(parentNode=root, name='SutureNeedle_left', monitor=True, file1="SutureTask_pos", file2="SutureTask_vel", file3="SutureTask_force", position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
 
     #############################################################################################################
 
     # # Add Suture Controller
-    root.addObject(SutureTaskTrainingController(name="MyController", rootNode=root, skin_left=skin_left, skin_right=skin_right))
+    root.addObject(SutureTrainingContactControllerDoubleHaptic(name="MyController", rootNode=root,  skin_left=skin_left, skin_right=skin_right))
 
     # Add training spheres: add when necessary
     suture_models.sphere(parentNode=root, name="Sphere1", translation=[x[0], y[0], z], scale3d="1.5 1.5 1.5", color="1.0 0 0.0", SphereModelNumber="M1")
@@ -151,27 +154,17 @@ def GeomagicDevice(parentNode=None, name=None, position=None):
 # Controller for suture task training
 # Handles the suture procedure
 
-class SutureTaskTrainingController(Sofa.Core.Controller):
-    
+class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
     ## Constructor of the class. 
     # @param name: name of the controller
     # @param rootnode: path to the root node of the simulation
     # @param skin_left: path to the left skin patch root node
     # @param skin_right: path to the right skin patch root node
-    # Defines the contact listeners between spheres and the needle and creates the 4 force fields 
+    
     
     def __init__(self, name, rootNode, skin_left, skin_right):
         Sofa.Core.Controller.__init__(self, name, rootNode, skin_left, skin_right)
-
-        # Define contact listeners (SkinLeft-Needle; SkinRight-Needle)
-        self.contact_listener = rootNode.addObject('ContactListener', name="LeftContact", collisionModel1 = suture_models.Skin.COLL, collisionModel2 = suture_models.SutureNeedle.COLL_FRONT)
-        self.contact_listener_right = rootNode.addObject('ContactListener', name="RightContact", collisionModel1 = suture_models.Skin.COLL_right, collisionModel2 = suture_models.SutureNeedle.COLL_FRONT)
-
-        # Define spring force fields (SkinLeft-Needle; SkinRight-Needle; SkinLeft-SkinRight; SkinRight-SkinLeft)
-        self.spring_force_field = skin_left.addObject("StiffSpringForceField", name="LeftFF", object1 = suture_models.Skin.MO,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
-        self.spring_force_field_right = skin_right.addObject("StiffSpringForceField", name="RightFF", object1 = suture_models.Skin.MO_right,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
-        self.spring_force_field_skins = skin_left.addObject("StiffSpringForceField", name="SkinsFF", object1 = suture_models.Skin.MO,  object2=suture_models.Skin.MO_right)
-        self.spring_force_field_skins_right = skin_right.addObject("StiffSpringForceField", name="SkinsRightFF", object1 = suture_models.Skin.MO_right,  object2=suture_models.Skin.MO)
+        
 
         # Pass last created springs (LeftSkin-Needle)
         self.springsCreated_left=False
@@ -183,9 +176,10 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
         self.root=rootNode
         self.points=0
 
+        self.first=1
+        self.skin_left=skin_left
+        self.skin_right=skin_right
 
-
-        
     ## Method called at each begin of animation step
     # @param event: animation step event
     # If a contact between the needle tip and one of the skin patches, the function retrieves the skin triangle index of contact and 
@@ -196,6 +190,22 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
     # At the end of the function, the last needle-skin springs are removed on button press.
 
     def onAnimateBeginEvent(self, event):
+
+        if self.first==1: 
+            self.initializeStuff(suture_models.SutureNeedle.COLL_FRONT, suture_models.SutureNeedle.COLL_BACK_MO)
+            self.first=0
+
+        if self.root.GeomagicDeviceRight.findData('button2').value==1:
+            suture_models.SutureNeedle.VIS.findData('isEnabled').value=0
+            suture_models.SutureNeedleLeft.VIS.findData('isEnabled').value=1
+            self.first=1
+            return
+
+        elif self.root.GeomagicDeviceLeft.findData('button2').value==1:
+            suture_models.SutureNeedleLeft.VIS.findData('isEnabled').value=0
+            suture_models.SutureNeedle.VIS.findData('isEnabled').value=1
+            self.first=1
+            return
 
         newMaterial="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45"
         coll_indexes=self.contact_listener.getContactElements() 
@@ -372,6 +382,18 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
         #label .ending
         #print("no collision")
 
+    ## Method that deefines the contact listeners between spheres and the needle and creates the force fields 
+    def initializeStuff(self, sutColl_FRONT, sutColl_BACK):
+        
+        # Define spring force fields (SkinLeft-Needle; SkinRight-Needle; SkinLeft-SkinRight)
+        self.spring_force_field = self.skin_left.addObject("StiffSpringForceField", name="LeftFF", object1 = suture_models.Skin.MO,  object2=sutColl_BACK)
+        self.spring_force_field_right = self.skin_right.addObject("StiffSpringForceField", name="RightFF", object1 = suture_models.Skin.MO_right,  object2=sutColl_BACK)
+        self.spring_force_field_skins = self.skin_left.addObject("StiffSpringForceField", name="SkinsFF", object1 = suture_models.Skin.MO,  object2=suture_models.Skin.MO_right)
+        self.spring_force_field_skins_right = self.skin_right.addObject("StiffSpringForceField", name="SkinsRightFF", object1 = suture_models.Skin.MO_right,  object2=suture_models.Skin.MO)
+        
+        # Define contact listeners (SkinLeft-Needle; SkinRight-Needle)
+        self.contact_listener = self.root.addObject('ContactListener', name="LeftContact", collisionModel1 = suture_models.Skin.COLL, collisionModel2 = sutColl_FRONT)
+        self.contact_listener_right = self.root.addObject('ContactListener', name="RightContact", collisionModel1 = suture_models.Skin.COLL_right, collisionModel2 = sutColl_FRONT)
 
     ## Method that creates springs between the right skin patch and the left one.
     # @param indicesBox1: indices of the right box
@@ -384,7 +406,7 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
         springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=1) for i, j in zip(indicesBox1,indicesBox2)] 
         self.spring_force_field_skins.addSprings(springs)
         print("Springs added between skins")
-    
+
     ## Method that creates springs between the left skin patch and the right one.
     # @param indicesBox1: indices of the left box
     # @param indicesBox2: indices of the right box

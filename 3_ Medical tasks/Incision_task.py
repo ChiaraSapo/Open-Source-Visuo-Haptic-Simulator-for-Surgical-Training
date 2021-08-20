@@ -48,6 +48,7 @@ def main():
         Sofa.Gui.GUIManager.MainLoop(root)
         Sofa.Gui.GUIManager.closeGUI()
 
+## This function creates the graph node.
 
 def createScene(root):
 
@@ -71,12 +72,9 @@ def createScene(root):
     root.dt=0.01
 
     root.addObject('RequiredPlugin', pluginName="Geomagic SofaBoundaryCondition SofaCarving SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
-    #root.addObject('VisualStyle', displayFlags="showBehaviorModels")
 
     root.addObject('OglLabel', label="INCISION TASK", x=20, y=20, fontsize=30, selectContrastingColor="1")
     root.addObject('OglLabel', label="Cut the skin in correnspondence of the central line", x=20, y=70, fontsize=20, selectContrastingColor="1")
-    #root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
-
 
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
@@ -84,7 +82,7 @@ def createScene(root):
     # Forces
     root.addObject('BruteForceDetection', name="detection")
     root.addObject('DefaultContactManager', name="CollisionResponse", response="FrictionContact")
-    root.addObject('LocalMinDistance', name="proximity", alarmDistance="0.5", contactDistance="0.05", angleCone="0.1")
+    root.addObject('LocalMinDistance', name="proximity", alarmDistance="0.1", contactDistance="0.01", angleCone="0.1")
 
     # Animation loop
     root.addObject('FreeMotionAnimationLoop')
@@ -92,27 +90,23 @@ def createScene(root):
     # Constraint solver
     root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
 
-
     # Add skin
     posx_left=6.5 #0<x<7
     posy=10 #10<y<22
     boxes=[10,11.5,13,14.5,16,17.5,19,20.5,22]
+
     skin_left=incision_models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 10.0, 0.0], 
-    scale3d=scale3d_skin, fixingBox=[-0.1, posy, -2, 7, posy+12, 0.1], borderBox=[posx_left, posy, -2, posx_left+0.5, posy+12, 1], 
-    importFile=skinVolume_fileName, carving=carving, side=0, task="Incision",
+    scale3d=scale3d_skin, fixingBox=[-0.1, posy, -2, 7, posy+12, 0.1], importFile=skinVolume_fileName,  side=0, 
     borderBox1=[posx_left-0.1, boxes[0], -2, posx_left+0.6, boxes[1], 1],borderBox2=[posx_left-0.1, boxes[1], -2, posx_left+0.6, boxes[2], 1],borderBox3=[posx_left-0.1, boxes[2], -2, posx_left+0.6, boxes[3], 1],
     borderBox4=[posx_left-0.1, boxes[3], -2, posx_left+0.6, boxes[4], 1], borderBox5=[posx_left-0.1, boxes[4], -2, posx_left+0.6, boxes[5], 1],borderBox6=[posx_left-0.1, boxes[5], -2, posx_left+0.6, boxes[6], 1],
-    borderBox7=[posx_left-0.1, boxes[6], -2, posx_left+0.6, boxes[7], 1],borderBox8=[posx_left-0.1, boxes[7], -2, posx_left+0.6, boxes[8], 1]
-    )
+    borderBox7=[posx_left-0.1, boxes[6], -2, posx_left+0.6, boxes[7], 1],borderBox8=[posx_left-0.1, boxes[7], -2, posx_left+0.6, boxes[8], 1]    )
 
-    posx=posx_left+0.85 # 
+    posx=posx_left+0.85 
     skin_right=incision_models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[posx, 10, 0], 
-    scale3d=scale3d_skin, fixingBox=[posx, posy, -2, posx*2, posy+12, 0.1], borderBox=[posx, posy, -2, posx+0.5, posy+12, 1],
-    importFile=skinVolume_fileName, carving=carving, side=1, task="Incision",
+    scale3d=scale3d_skin, fixingBox=[posx, posy, -2, posx*2, posy+12, 0.1], importFile=skinVolume_fileName,  side=1, 
     borderBox1=[posx-0.1, boxes[0], -2, posx+0.6, boxes[1], 1],borderBox2=[posx-0.1, boxes[1], -2, posx+0.6, boxes[2], 1],borderBox3=[posx-0.1, boxes[2], -2, posx+0.6, boxes[3], 1],
     borderBox4=[posx-0.1, boxes[3], -2, posx+0.6, boxes[4], 1], borderBox5=[posx-0.1, boxes[4], -2, posx+0.6, boxes[5], 1],borderBox6=[posx-0.1, boxes[5], -2, posx+0.6, boxes[6], 1],
-    borderBox7=[posx-0.1, boxes[6], -2, posx+0.6, boxes[7], 1],borderBox8=[posx-0.1, boxes[7], -2, posx+0.6, boxes[8], 1]
-    )
+    borderBox7=[posx-0.1, boxes[6], -2, posx+0.6, boxes[7], 1],borderBox8=[posx-0.1, boxes[7], -2, posx+0.6, boxes[8], 1]  )
 
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
@@ -125,44 +119,28 @@ def createScene(root):
             root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
             drawDevice="1", positionBase="0 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
 
-            incision_models.GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
-            incision_models.GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
+            GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
+            GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
 
         else: 
             root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="1", 
             drawDevice="0", positionBase="10 13 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
             
-            incision_models.GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
+            GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
 
     #############################################################################################################
 
-
-    #################### CARVING #############################################
-    if carving==True:
-        root.addObject('CarvingManager', active="true", carvingDistance="0.05")
-    ##########################################################################
-
-    
     # Add scalpel
-    incision_models.Scalpel(parentNode=root, name='Scalpel',  geomagic=geomagic)
+    incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1="IncisionTask_pos", file2="IncisionTask_vel", file3="IncisionTask_force")
 
-    # Add contact listener: uncomment to do stuff at animation time
-    #root.addObject(IncisionContactControllerSprings(root, skin_left, skin_right))
-    root.addObject(IncisionContactControllerSpringsTemp(root, skin_left, skin_right))
-    #root.addObject(IncisionContactControllerAttach(root)) # If true: set translation of skin right to 10
-
-
+    # Add controller
+    root.addObject(IncisionTaskTrainingController(root, skin_left, skin_right))
+  
+    
     return root
 
 
-
-
-
-
-
-
-
-## This function defines a geomagic
+## This function defines a geomagic touch device node.
 # @param parentNode: parent node of the skin patch
 # @param name: name of the behavior node
 # @param rotation: rotation 
@@ -170,17 +148,29 @@ def createScene(root):
 def GeomagicDevice(parentNode=None, name=None, position=None):
     name=parentNode.addChild(name)
     name.addObject('MechanicalObject', template="Rigid3", name="DOFs", position=position)
-    name.addObject('MechanicalStateController', template="Rigid3", listening="true", mainDirection="-1.0 0.0 0.0")
+    name.addObject('MechanicalStateController', name="GEOMSC", template="Rigid3", listening="true", mainDirection="-1.0 0.0 0.0")
+    GeomagicDevice.MO=name.DOFs
+    GeomagicDevice.MSC=name.GEOMSC
 
 
-class IncisionContactControllerSpringsTemp(Sofa.Core.Controller):
+## Controller for incision task.
+# Handles the cutting of the skin
 
+class IncisionTaskTrainingController(Sofa.Core.Controller):
+    
+    ## Constructor of the class. 
+    # @param name: name of the controller
+    # @param rootnode: path to the root node of the simulation
+    # @param skin_left: path to the left skin patch root node
+    # @param skin_right: path to the right skin patch root node
+    # Defines the contact listeners between skin and the scalpel and creates the 8 force fields between skin patches
+    
     def __init__(self, root, skin_left, skin_right):
         Sofa.Core.Controller.__init__(self, root, skin_left, skin_right)
         self.contact_listener = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL, collisionModel2 = incision_models.Scalpel.COLL_FRONT)
         self.contact_listener_right = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL_right, collisionModel2 = incision_models.Scalpel.COLL_FRONT)
-        # self.contact_listener2 = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL, collisionModel2 = incision_models.Scalpel.COLL_FRONT2)
-        # self.contact_listener2_right = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL_right, collisionModel2 = incision_models.Scalpel.COLL_FRONT2)
+        self.contact_listener2 = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL, collisionModel2 = incision_models.Scalpel.COLL_FRONT2)
+        self.contact_listener2_right = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL_right, collisionModel2 = incision_models.Scalpel.COLL_FRONT2)
         
         self.rootNode=root
 
@@ -245,23 +235,16 @@ class IncisionContactControllerSpringsTemp(Sofa.Core.Controller):
         self.spring_force_field8.addSprings(springs8)
 
 
+    ## Method called at each begin of animation step
+    # @param event: animation step event
+    # If a contact between the scalpel and the skin, the force field in that point is deactivated
 
-
-    # # Uncomment to recompute indices
     def onAnimateBeginEvent(self, event): 
-        
 
-        try:
-            coll_indexes=self.contact_listener.getContactElements()
-        except:
-            return
-        try:
-            coll_indexes_right=self.contact_listener_right.getContactElements()
-        except:
-            return
-        # coll_indexes2=self.contact_listener2.getContactElements()
-        # coll_indexes2_right=self.contact_listener2_right.getContactElements()
-        #print("Left top:", coll_indexes, " and right top: ", coll_indexes_right)#, "Left bottom:", coll_indexes2, " and right bottom: ", coll_indexes2_right)
+        coll_indexes=self.contact_listener.getContactElements()
+        coll_indexes_right=self.contact_listener_right.getContactElements()
+        coll_indexes2=self.contact_listener2.getContactElements()
+        coll_indexes2_right=self.contact_listener2_right.getContactElements()
         
         if coll_indexes!=[]:
             print("Contact left top")
@@ -271,91 +254,81 @@ class IncisionContactControllerSpringsTemp(Sofa.Core.Controller):
             print("Contact right top")
             self.right_ff(coll_indexes_right) 
 
-        # if coll_indexes2!=[] and coll_indexes==[]:
-        #     print("Contact left bottom")
-        #     self.left_ff(coll_indexes2)   
+        if coll_indexes2!=[] and coll_indexes==[]:
+            print("Contact left bottom")
+            self.left_ff(coll_indexes2)   
 
-        # elif coll_indexes2_right!=[] and coll_indexes_right==[]:     
-        #     print("Contact right bottom")
-        #     self.right_ff(coll_indexes2_right)  
-            
+        elif coll_indexes2_right!=[] and coll_indexes_right==[]:     
+            print("Contact right bottom")
+            self.right_ff(coll_indexes2_right)  
+    
+
+    ## Method to dectivate force fields after a contact on the left side of the skin has occurred.
+    # @param: skin triangle indices and scalpel point indices on which contact happened 
+    # Estracts the skin triangle index and checks if it belongs to any of the border boxes: if it does, the force field in that point is deactivated
     def left_ff(self, coll_indexes):   
         coll_indexes2=coll_indexes[0]
         coll_index_skin=coll_indexes2[1]
-        if coll_index_skin in self.indices1 and self.ff1==True:
-            print("1")
+        if coll_index_skin in incision_models.Skin.borderBox1.findData('triangleIndices').value and self.ff1==True:
             self.spring_force_field1.clear()
             self.ff1=False
-        elif coll_index_skin in self.indices2 and self.ff2==True:
-            print("2")
+        elif coll_index_skin in incision_models.Skin.borderBox2.findData('triangleIndices').value and self.ff2==True:
             self.spring_force_field2.clear()
             self.ff2=False
-        elif coll_index_skin in self.indices3 and self.ff3==True:
-            print("3")
+        elif coll_index_skin in incision_models.Skin.borderBox3.findData('triangleIndices').value and self.ff3==True:
             self.spring_force_field3.clear()
             self.ff3=False
-        elif coll_index_skin in self.indices4 and self.ff4==True:
-            print("4")
+        elif coll_index_skin in incision_models.Skin.borderBox4.findData('triangleIndices').value and self.ff4==True:
             self.spring_force_field4.clear()
             self.ff4=False
-        elif coll_index_skin in self.indices5 and self.ff5==True:
-            print("5")
+        elif coll_index_skin in incision_models.Skin.borderBox5.findData('triangleIndices').value and self.ff5==True:
             self.spring_force_field5.clear()
             self.ff5=False
-        elif coll_index_skin in self.indices6 and self.ff6==True:
-            print("6")
+        elif coll_index_skin in incision_models.Skin.borderBox6.findData('triangleIndices').value and self.ff6==True:
             self.spring_force_field6.clear()
             self.ff6=False
-        elif coll_index_skin in self.indices7 and self.ff7==True:
-            print("7")
+        elif coll_index_skin in incision_models.Skin.borderBox7.findData('triangleIndices').value and self.ff7==True:
             self.spring_force_field7.clear()
             self.ff7=False
-        elif coll_index_skin in self.indices8 and self.ff8==True:
-            print("8")
+        elif coll_index_skin in incision_models.Skin.borderBox8.findData('triangleIndices').value and self.ff8==True:
             self.spring_force_field8.clear()
             self.ff8=False
         else:
-            print("no")
             print(self.ff1, self.ff2, self.ff3, self.ff4, self.ff5, self.ff6, self.ff7, self.ff8)
-
+   
+   
+    ## Method to dectivate force fields after a contact on the right side of the skin has occurred.
+    # @param: skin triangle indices and scalpel point indices on which contact happened 
+    # Estracts the skin triangle index and checks if it belongs to any of the border boxes: if it does, the force field in that point is deactivated
     def right_ff(self, coll_indexes_right):
         coll_indexes2=coll_indexes_right[0]
         coll_index_skin=coll_indexes2[1]
-        if coll_index_skin in self.indices1_right and self.ff1==True:
-            print("1")
+        if coll_index_skin in incision_models.Skin.borderBox1_right.findData('triangleIndices').value and self.ff1==True:
             self.spring_force_field1.clear()
             self.ff1=False
-        elif coll_index_skin in self.indices2_right and self.ff2==True:
-            print("2")
+        elif coll_index_skin in incision_models.Skin.borderBox2_right.findData('triangleIndices').value and self.ff2==True:
             self.spring_force_field2.clear()
             self.ff2=False
-        elif coll_index_skin in self.indices3_right and self.ff3==True:
-            print("3")
+        elif coll_index_skin in incision_models.Skin.borderBox3_right.findData('triangleIndices').value and self.ff3==True:
             self.spring_force_field3.clear()
             self.ff3=False
-        elif coll_index_skin in self.indices4_right and self.ff4==True:
-            print("4")
+        elif coll_index_skin in incision_models.Skin.borderBox4_right.findData('triangleIndices').value and self.ff4==True:
             self.spring_force_field4.clear()
             self.ff4=False
-        elif coll_index_skin in self.indices5_right and self.ff5==True:
-            print("5")
+        elif coll_index_skin in incision_models.Skin.borderBox5_right.findData('triangleIndices').value and self.ff5==True:
             self.spring_force_field5.clear()
             self.ff5=False
-        elif coll_index_skin in self.indices6_right and self.ff6==True:
-            print("6")
+        elif coll_index_skin in incision_models.Skin.borderBox6_right.findData('triangleIndices').value and self.ff6==True:
             self.spring_force_field6.clear()
             self.ff6=False
-        elif coll_index_skin in self.indices7_right and self.ff7==True:
-            print("7")
+        elif coll_index_skin in incision_models.Skin.borderBox7_right.findData('triangleIndices').value and self.ff7==True:
             self.spring_force_field7.clear()
             self.ff7=False
-        elif coll_index_skin in self.indices8_right and self.ff8==True:
-            print("8")
+        elif coll_index_skin in incision_models.Skin.borderBox8_right.findData('triangleIndices').value and self.ff8==True:
             self.spring_force_field8.clear()
             self.ff8=False
         else:
-            print("no")
-            print(self.ff1, self.ff2, self.ff3, self.ff4, self.ff5, self.ff6, self.ff7, self.ff8)
+            print("Index does not belong to a border box")
 
 
         # self.indices1=incision_models.Skin.borderBox1.findData('indices').value
@@ -392,9 +365,6 @@ class IncisionContactControllerSpringsTemp(Sofa.Core.Controller):
         # print("[", self.computeIndices(self.indices7), "]")
         # print("8L")
         # print("[", self.computeIndices(self.indices8), "]")
-
-
-        
         # print("1R")
         # print("[", self.computeIndices(self.indices1_right), "]")
         # print("2R")
@@ -413,101 +383,8 @@ class IncisionContactControllerSpringsTemp(Sofa.Core.Controller):
         # print("[", self.computeIndices(self.indices8_right), "]")
 
 
-    # def computeIndices(self, indicesBox):
-    #     N_indices=len(indicesBox)
-    #     result=' '  
-
-    #     for i in range(N_indices):
-    #         result += str(indicesBox[i]) + ", "
-
-    #     return result
-
-       
-
-
-
-
-
-class IncisionContactControllerAttach(Sofa.Core.Controller):
-
-    def __init__(self, root):
-        Sofa.Core.Controller.__init__(self, root)
-        self.contact_listener = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL, collisionModel2 = incision_models.Scalpel.COLL_FRONT)
-        self.contact_listener_right = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL_right, collisionModel2 = incision_models.Scalpel.COLL_FRONT)
-        self.rootNode=root
-
-        root.addObject('AttachConstraint',
-        name="Incision constraint",
-        object1 = "@SkinLeft", 
-        object2 = "@SkinRight", 
-        indices1= "  4 5 6 7 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239  ", 
-        indices2= "  0 1 2 3 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207  ") 
-
-
-    # # # Uncomment to recompute indices
-    # def onAnimateBeginEvent(self, event): 
-
-    #     print(incision_models.Skin.borderBox.findData('indices').value)
-    #     index1=incision_models.Skin.borderBox.findData('indices').value
-    #     index2=incision_models.Skin.borderBox_right.findData('indices').value
-    #     temp1=len(index1)
-    #     temp2=len(index2)
-    #     self.N_indices=min(temp1,temp2)
-    #     in1=self.computeIndices(index1)
-    #     in2=self.computeIndices(index2)
-
-    #     print("indices1= \"", in1, "\", indices2= \"", in2, "\")")
-
-
-    def computeIndices(self, indicesBox):
-
-        result=' '  
-
-        for i in range(self.N_indices):
-            result += str(indicesBox[i]) + ", "
-
-        return result
-
-
-class IncisionContactControllerSprings(Sofa.Core.Controller):
-
-    def __init__(self, root, skin_left, skin_right):
-        Sofa.Core.Controller.__init__(self, root, skin_left, skin_right)
-        self.contact_listener = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL, collisionModel2 = incision_models.Scalpel.COLL_FRONT)
-        self.contact_listener_right = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL_right, collisionModel2 = incision_models.Scalpel.COLL_FRONT)
-        self.rootNode=root
-
-        self.spring_force_field = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        
-        index1=[  4, 5, 6, 7, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 
-        103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132,
-        133, 134, 135, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 
-        235, 236, 237, 238, 239 ]
-
-        index2=[  0, 1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 
-        39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 176, 177, 
-        178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207 ]
-        
-        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=0.5, restLength=0.001) for i, j in zip(index1,index2)] # Then set to right indices (the ones below)
-        self.spring_force_field.addSprings(springs)
-        self.indexes=0
-
-    # # Uncomment to recompute indices
-    def onAnimateBeginEvent(self, event): 
-        coll_indexes=self.contact_listener.getContactElements()
-        if coll_indexes!=[]:
-            print("cut!")
-            self.spring_force_field.removeSpring(random.randrange(20))
-
-
-    #     index1=incision_models.Skin.borderBox.findData('indices').value
-    #     index2=incision_models.Skin.borderBox_right.findData('indices').value
-    #     in1=self.computeIndices(index1)
-    #     in2=self.computeIndices(index2)
-
-    #     print("[", in1, "]")
-    #     print("[", in2, "]")
-  
+    ## Method to compute the string of indices given the input array of integers.
+    # @param indicesBox: array of indices 
 
     def computeIndices(self, indicesBox):
         N_indices=len(indicesBox)
@@ -517,6 +394,9 @@ class IncisionContactControllerSprings(Sofa.Core.Controller):
             result += str(indicesBox[i]) + ", "
 
         return result
+
+
+
 
 if __name__ == '__main__':
     main()
