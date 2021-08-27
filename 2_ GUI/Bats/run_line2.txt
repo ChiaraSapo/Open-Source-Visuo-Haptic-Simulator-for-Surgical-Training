@@ -1,0 +1,3 @@
+cd C:\sofa\build\v20.12.02\bin\Release
+
+runSofa C:\sofa\src\Chiara\Trial_Line2.py -a

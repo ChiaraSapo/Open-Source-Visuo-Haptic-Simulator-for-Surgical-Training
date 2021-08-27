@@ -62,20 +62,24 @@ def main():
 
 def createScene(root):
 
-    # Read user name
-    Config=open('D:\Thesis\GUI\Config.txt')
+    Config=open('C:/sofa/src/Chiara/Bats/Config.txt')
     for line in Config:
         pass
     user_name = line
     Config.close()
 
-    # Read user data (last lines of the file)
-    fileName=f"D:\Thesis\GUI\{user_name}.txt"
-    User=open(fileName)
-    lines1=User.readlines()
-    lines=lines1[-5:] #put 4 LATER
-    station_type=lines[3]
-    User.close()
+    ConfigNumber=open('C:/sofa/src/Chiara/Repetitions.txt')
+    for line in ConfigNumber:
+        pass
+    RepNumber = line
+    ConfigNumber.close()
+
+    fileNamePos=f"Rep{RepNumber}_{user_name}_RingsPos"
+    fileNameVel=f"Rep{RepNumber}_{user_name}_RingsVel"
+    fileNameForce=f"Rep{RepNumber}_{user_name}_RingsForce"
+    fileNamePosLeft=f"Rep{RepNumber}_{user_name}_RingsPosLeft"
+    fileNameVelLeft=f"Rep{RepNumber}_{user_name}_RingsVelLeft"
+    fileNameForceLeft=f"Rep{RepNumber}_{user_name}_RingsForceLeft"
 
     # Define root properties
     root.gravity=[0, 0, -5]
@@ -87,6 +91,8 @@ def createScene(root):
     root.addObject('OglLabel', label="RINGS TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
     root.addObject('OglLabel', label="Pass through the rings without touching them,", x=20, y=70, fontsize=20, selectContrastingColor="1")
     root.addObject('OglLabel', label="starting from the one closest to you", x=20, y=100, fontsize=20, selectContrastingColor="1")
+    root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
+    #root.addObject('ViewerSetting', fullscreen="true")
 
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
@@ -103,7 +109,7 @@ def createScene(root):
     LCPConstraintSolver=root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
 
     # View
-    root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -1 -0.000108372 0.908378")
+    #root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -1 -0.000108372 0.908378")
 
     # Add skin
     skin_left=suture_models.Skin(parentNode=root, name='SkinLeft', rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], 
@@ -112,7 +118,7 @@ def createScene(root):
     skin_right=suture_models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[11, 0, 0], 
     scale3d=scale3d_skin, fixingBox=[11, -0.1, -2, 22, 20, 0.1], side=1) 
 
-
+    station_type="Single"
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
     if geomagic==True:
 
@@ -129,20 +135,20 @@ def createScene(root):
             GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
             
             # Add needles
-            suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=True, file1="RingsTask_pos", file2="RingsTask_vel", file3="RingsTask_force", position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
-            suture_models.StraightNeedle(parentNode=root, name='StraightNeedleLeft', monitor=True, file1="RingsTask_pos", file2="RingsTask_vel", file3="RingsTask_force", position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
+            suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
+            suture_models.StraightNeedle(parentNode=root, name='StraightNeedleLeft', monitor=True, file1=fileNamePosLeft, file2=fileNameVelLeft, file3=fileNameForceLeft, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
 
 
         else: 
             # Add geomagic drivers
-            root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="1", 
+            root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="0", 
             drawDevice="0", positionBase="11 10 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
 
             # Add geomagic node
             GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
 
             # Add needle
-            suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=True, file1="RingsTask_pos", file2="RingsTask_vel", file3="RingsTask_force", position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
+            suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
 
 
     #############################################################################################################
@@ -198,12 +204,12 @@ class RingsTaskController(Sofa.Core.Controller):
         newMaterial="Default Diffuse 1 1 0 0 1 Ambient 1 0.2 0 0 1 Specular 0 1 0 0 1 Emissive 0 1 0 0 1 Shininess 0 45"
         oldMaterial="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45"
         
-        # Button1 == Black button; Button2 == Grey button
-        if self.root.GeomagicDevice.findData('button2').value!=0: # If button is toggled
-            if suture_models.StraightNeedle.Monitor.findData('showTrajectories').value==1:
-                suture_models.StraightNeedle.Monitor.findData('showTrajectories').value=0
-            elif suture_models.StraightNeedle.Monitor.findData('showTrajectories').value==0:
-                suture_models.StraightNeedle.Monitor.findData('showTrajectories').value=1
+        # # Button1 == Black button; Button2 == Grey button
+        # if self.root.GeomagicDevice.findData('button2').value!=0: # If button is toggled
+        #     if suture_models.StraightNeedle.Monitor.findData('showTrajectories').value==1:
+        #         suture_models.StraightNeedle.Monitor.findData('showTrajectories').value=0
+        #     elif suture_models.StraightNeedle.Monitor.findData('showTrajectories').value==0:
+        #         suture_models.StraightNeedle.Monitor.findData('showTrajectories').value=1
         
         # if self.root.GeomagicDevice.findData('button1').value==1:
         #     # self.root.animate = False

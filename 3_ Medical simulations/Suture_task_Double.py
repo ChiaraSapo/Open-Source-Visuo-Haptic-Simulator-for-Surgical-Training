@@ -57,11 +57,24 @@ def main():
 def createScene(root):
 
     # Read user name
-    Config=open('D:\Thesis\GUI\Config.txt')
+    Config=open('C:/sofa/src/Chiara/Bats/Config.txt')
     for line in Config:
         pass
     user_name = line
     Config.close()
+
+    ConfigNumber=open('C:/sofa/src/Chiara/Repetitions.txt')
+    for line in ConfigNumber:
+        pass
+    RepNumber = line
+    ConfigNumber.close()
+
+    fileNamePos=f"Rep{RepNumber}_{user_name}_SuturePos"
+    fileNameVel=f"Rep{RepNumber}_{user_name}_SutureVel"
+    fileNameForce=f"Rep{RepNumber}_{user_name}_SutureForce"
+    fileNamePosLeft=f"Rep{RepNumber}_{user_name}_SuturePosLeft"
+    fileNameVelLeft=f"Rep{RepNumber}_{user_name}_SutureVelLeft"
+    fileNameForceLeft=f"Rep{RepNumber}_{user_name}_SutureForceLeft"
 
     # Define root properties
     root.gravity=[0, 0, -2]
@@ -73,7 +86,9 @@ def createScene(root):
     root.addObject('OglLabel', label="SUTURE TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
     root.addObject('OglLabel', label="Pierce the skin in correnspondence of the green spheres", x=20, y=70, fontsize=20, selectContrastingColor="1")
     root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
-
+    root.addObject('ViewerSetting', fullscreen="true")
+    root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
+    
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
 
@@ -89,7 +104,7 @@ def createScene(root):
     LCPConstraintSolver=root.addObject('LCPConstraintSolver', tolerance="0.001", maxIt="1000")
 
     # View
-    root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -6.26277e-06 -0.000108372 0.908378")
+    #root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -6.26277e-06 -0.000108372 0.908378")
 
     # Add skin
     x=[8,8,12,12]
@@ -115,8 +130,8 @@ def createScene(root):
     GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
 
     # Add needles
-    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1="SutureTask_pos", file2="SutureTask_vel", file3="SutureTask_force", position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs') # To fall on sphere: dx=12, dy=3, dz=
-    suture_models.SutureNeedleLeft(parentNode=root, name='SutureNeedle_left', monitor=True, file1="SutureTask_pos", file2="SutureTask_vel", file3="SutureTask_force", position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
+    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs') # To fall on sphere: dx=12, dy=3, dz=
+    suture_models.SutureNeedleLeft(parentNode=root, name='SutureNeedle_left', monitor=True, file1=fileNamePosLeft, file2=fileNameVelLeft, file3=fileNameForceLeft, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
 
     #############################################################################################################
 
@@ -218,6 +233,9 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
             # Does it belong to box 1? If it does: 
             if coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value:
                 print("Box 1")    
+                
+                # Change sphere color
+                suture_models.sphere.M1.findData('material').value=newMaterial 
 
                 if self.springsCreated_left==False:
 
@@ -228,16 +246,14 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
                         self.contactLeft_attachBoxes(self.boxAttached.findData('indices').value, suture_models.Skin.sphere1Box.findData('indices').value) # Left then right
 
                         # Then remove the previous springs.
-                        self.contactLeft_disattach()                    
-                        
+                        self.contactLeft_disattach()     
+
                     # Set this box as the last one attached
                     self.boxAttached=suture_models.Skin.sphere1Box
                     
                     # Create springs SkinLeft-Back_Needle
                     self.contactLeft_attach(self.boxAttached)
                     
-                    # Change sphere color
-                    suture_models.sphere.M1.findData('material').value=newMaterial
 
                     # Increase the points!
                     self.points+=1
@@ -248,6 +264,8 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
             # Does it belong to box 2? If it does: 
             elif coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value:
                 print("Box 2")
+                # Change sphere color
+                suture_models.sphere.M2.findData('material').value=newMaterial
 
                 if self.springsCreated_left==False:
 
@@ -258,16 +276,15 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
                         self.contactLeft_attachBoxes(self.boxAttached.findData('indices').value,suture_models.Skin.sphere2Box.findData('indices').value) # Left then right
 
                         # Then remove the previous springs.
-                        self.contactLeft_disattach()          
+                        self.contactLeft_disattach()    
+
+                          
 
                     # Set this box as the last one attached
                     self.boxAttached=suture_models.Skin.sphere2Box
 
                     # Create springs SkinLeft-Back_Needle
                     self.contactLeft_attach(self.boxAttached)
-
-                    # Change sphere color
-                    suture_models.sphere.M2.findData('material').value=newMaterial
 
                     # Increase the points!
                     self.points+=1
@@ -291,6 +308,8 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
             # Does it belong to a box? If it does: 
             if coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value:
                 print("Box 3")
+                # Change sphere color
+                suture_models.sphere.M3.findData('material').value=newMaterial
 
                 if self.springsCreated_right==False:
 
@@ -302,14 +321,13 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
                         # Then remove the previous springs.
                         self.contactRight_disattach()
                         
+                    
+                    
                     # Set this box as the last one attached
                     self.boxAttached=suture_models.Skin.sphere3Box
 
                     # Create springs SkinLeft-Back_Needle
                     self.contactRight_attach(self.boxAttached)
-                    
-                    # Change sphere color
-                    suture_models.sphere.M3.findData('material').value=newMaterial
                     
                     # Increase the points!
                     self.points+=1
@@ -319,6 +337,8 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
             # Does it belong to a box? If it does: 
             elif coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value:
                 print("Box 4")
+                # Set this box as the last one attached
+                self.boxAttached=suture_models.Skin.sphere4Box
 
                 if self.springsCreated_right==False:
 
@@ -330,14 +350,13 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
                         # Then remove the previous springs.
                         self.contactRight_disattach()
                     
-                    # Set this box as the last one attached
-                    self.boxAttached=suture_models.Skin.sphere4Box
+                    # Change sphere color
+                    suture_models.sphere.M4.findData('material').value=newMaterial
+                    
+                    
                     
                     # Create springs SkinLeft-Back_Needle
                     self.contactRight_attach(self.boxAttached)
-
-                    # Change sphere color
-                    suture_models.sphere.M4.findData('material').value=newMaterial
                     
                     # Increase the points!
                     self.points+=1
@@ -347,6 +366,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
             else:
                 print("No ball detected")
                 self.finished=True
+
 
 
         if self.root.GeomagicDevice.findData('button2').value==1:

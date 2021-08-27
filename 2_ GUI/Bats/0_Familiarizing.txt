@@ -1,0 +1,12 @@
+echo calling sequential process 1
+call ID_GUI.bat
+echo calling sequential process 2
+call run_line1.bat
+echo calling sequential process 3
+call run_line2.bat
+echo calling sequential process 4
+call run_line3.bat
+echo calling sequential process 5
+call run_cube.bat
+echo calling sequential process 6
+call run_sphere.bat
