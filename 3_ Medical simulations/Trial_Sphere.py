@@ -50,6 +50,9 @@ def createScene(root):
     # Required plugins
     root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaCarving SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
     #root.addObject('VisualStyle', displayFlags="showInteractionForceFields")
+    root.addObject('OglLabel', label="TOUCH THE SPHERE", x=20, y=20, fontsize=30, selectContrastingColor="1")
+    #root.addObject('ViewerSetting', fullscreen="true")
+    root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
 
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
@@ -68,41 +71,15 @@ def createScene(root):
     # View
     root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -6.26277e-06 -0.000108372 0.908378")
 
-    station_type="Single"
-    geomagic=True
+    # Add geomagic drivers
+    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="1", 
+    drawDevice="0", positionBase="2 2 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedle/LCPFFNeedle")
 
-    #################### GEOMAGIC TOUCH DEVICE ##################################################################
-    if geomagic==True:
-
-        if station_type=="Double\n":
-            # Add geomagic drivers
-            root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="1", 
-            drawDevice="1", positionBase="20 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedle/LCPFFNeedle")
-
-            root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
-            drawDevice="1", positionBase="0 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedleLeft/LCPFFNeedle")
-
-            # Add geomagic nodes
-            GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
-            GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
-            
-            # Add needles
-            #suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
-            #suture_models.StraightNeedle(parentNode=root, name='StraightNeedleLeft', monitor=True, file1=fileNamePosLeft, file2=fileNameVelLeft, file3=fileNameForceLeft, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
-
-
-        else: 
-            # Add geomagic drivers
-            root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="1", 
-            drawDevice="1", positionBase="0 2 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
-
-            # Add geomagic node
-            GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
-
-            # Add needle
-            suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
-
-    #############################################################################################################
+    # Add geomagic nodes
+    GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
+    
+    # Add needles
+    suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=False, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
 
 
     sphere(parentNode=root, name="sphere")

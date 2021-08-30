@@ -5,7 +5,7 @@ import Sofa.SofaDeformable
 import incision_models 
 import suture_models
 import random
-
+import read_Files
 
 scale3d_skin="0.7 0.4 1"
 #scale3d_skin="0.25 0.65 0.1"
@@ -52,21 +52,11 @@ def main():
 
 def createScene(root):
 
-    Config=open('C:/sofa/src/Chiara/Bats/Config.txt')
-    for line in Config:
-        pass
-    user_name = line
-    Config.close()
+    [RepNumber,user_name]=read_Files.read()
 
-    ConfigNumber=open('C:/sofa/src/Chiara/Repetitions.txt')
-    for line in ConfigNumber:
-        pass
-    RepNumber = line
-    ConfigNumber.close()
-
-    fileNamePos=f"Rep{RepNumber}_{user_name}_Incision3Pos"
-    fileNameVel=f"Rep{RepNumber}_{user_name}_Incision3Vel"
-    fileNameForce=f"Rep{RepNumber}_{user_name}_Incision3Force"
+    fileNamePos=f"Rep{RepNumber}_{user_name}_Incision3Pos_Double"
+    fileNameVel=f"Rep{RepNumber}_{user_name}_Incision3Vel_Double"
+    fileNameForce=f"Rep{RepNumber}_{user_name}_Incision3Force_Double"
 
     # Define root properties
     root.gravity=[0, 0, -9]
@@ -127,30 +117,17 @@ def createScene(root):
     # borderBox7=[posx-0.1, boxes[6], -2, posx+0.6, boxes[7], 1],borderBox8=[posx-0.1, boxes[7], -2, posx+0.6, boxes[8], 1] ,borderBox9=[posx-0.1, boxes[8], -2, posx+0.6, boxes[9], 1], 
     # borderBox10=[posx-0.1, boxes[9], -2, posx+0.6, boxes[10], 1] , borderBox11=[posx-0.1, boxes[10], -2, posx+0.6, boxes[11], 1] , borderBox12=[posx-0.1, boxes[11], -2, posx+0.6, boxes[12], 1] )
 
-    station_type="Single"
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
-    if geomagic==True:
+    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="0", 
+    drawDevice="0", positionBase="7 15 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
 
-        if station_type=="Double\n":
-            root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="1", 
-            drawDevice="1", positionBase="20 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
+    GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
 
-            root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
-            drawDevice="1", positionBase="0 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
+    # Add needles
+    incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs')
+    #incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs')
 
-            GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
-            GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
-
-        else: 
-            root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="1", 
-            drawDevice="0", positionBase="10 13 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
-            
-            GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
-
-    #############################################################################################################
-
-    # Add scalpel
-    incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce)
+    ################################################################################################################
 
     # Add controller
     root.addObject(IncisionTaskTrainingController(root, skin_left, skin_right))

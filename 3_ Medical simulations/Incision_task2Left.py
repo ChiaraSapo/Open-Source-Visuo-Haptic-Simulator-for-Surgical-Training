@@ -7,7 +7,6 @@ import suture_models
 import random
 import read_Files
 
-
 scale3d_skin="0.7 0.4 1"
 #scale3d_skin="0.25 0.65 0.1"
 scale3d_scalpel="1 1 1 "
@@ -55,9 +54,9 @@ def createScene(root):
 
     [RepNumber,user_name]=read_Files.read()
 
-    fileNamePos=f"Rep{RepNumber}_{user_name}_Incision2Pos_Double"
-    fileNameVel=f"Rep{RepNumber}_{user_name}_Incision2Vel_Double"
-    fileNameForce=f"Rep{RepNumber}_{user_name}_Incision2Force_Double"
+    fileNamePos=f"Rep{RepNumber}_{user_name}_Incision2Pos_DoubleLeft"
+    fileNameVel=f"Rep{RepNumber}_{user_name}_Incision2Vel_DoubleLeft"
+    fileNameForce=f"Rep{RepNumber}_{user_name}_Incision2Force_DoubleLeft"
 
     # Define root properties
     root.gravity=[0, 0, -9]
@@ -120,14 +119,15 @@ def createScene(root):
 
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
-    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="0", 
-    drawDevice="0", positionBase="7 15 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
 
-    GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
+    drawDevice="1", positionBase="7 15 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedleLeft/LCPFFNeedle")
+
+    GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
 
     # Add needles
-    incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs')
-    #incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs')
+    #incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs')
+    incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs')
 
     ################################################################################################################
     

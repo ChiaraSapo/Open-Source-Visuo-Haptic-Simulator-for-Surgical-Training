@@ -69,16 +69,17 @@ def createScene(root):
 
     # View
     root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -6.26277e-06 -0.000108372 0.908378")
-    
-    # Add geomagic drivers
-    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="1", 
-    drawDevice="0", positionBase="2 2 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedle/LCPFFNeedle")
+
+        # Add geomagic drivers
+
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
+    drawDevice="0", positionBase="2 2 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedleLeft/LCPFFNeedle")
 
     # Add geomagic nodes
-    GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
+    GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
     
     # Add needles
-    suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=False, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
+    suture_models.StraightNeedleLeft(parentNode=root, name='StraightNeedleLeft', monitor=False, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
 
     line(parentNode=root, name="line")
 
@@ -98,6 +99,6 @@ def GeomagicDevice(parentNode=None, name=None, position=None):
 def line(parentNode=None, name=None, translation=[0.0, 5.0, 0.0], scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0]):
 
     name=parentNode.addChild(name)
-    name.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/cube.obj", translation=translation, scale3d="10 0.3 0.3", rotation="0 50 0 3")#, handleSeams="1" )
+    name.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/cube.obj", translation=translation, scale3d="10 0.3 0.3", rotation="0 30 0 3")#, handleSeams="1" )
     name.addObject('OglModel' ,name="VisualOGL" ,src="@meshLoader_3",material="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45")
     

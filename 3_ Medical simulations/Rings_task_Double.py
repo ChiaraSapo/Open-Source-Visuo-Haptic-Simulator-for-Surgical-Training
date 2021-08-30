@@ -6,7 +6,7 @@ import suture_models
 import incision_models
 import time
 import subprocess
-
+import read_Files
 
 # Data
 scale3d_skin="0.25 0.65 0.1"
@@ -62,24 +62,12 @@ def main():
 
 def createScene(root):
 
-    Config=open('C:/sofa/src/Chiara/Bats/Config.txt')
-    for line in Config:
-        pass
-    user_name = line
-    Config.close()
+    [RepNumber,user_name]=read_Files.read()
 
-    ConfigNumber=open('C:/sofa/src/Chiara/Repetitions.txt')
-    for line in ConfigNumber:
-        pass
-    RepNumber = line
-    ConfigNumber.close()
-
-    fileNamePos=f"Rep{RepNumber}_{user_name}_RingsPos"
-    fileNameVel=f"Rep{RepNumber}_{user_name}_RingsVel"
-    fileNameForce=f"Rep{RepNumber}_{user_name}_RingsForce"
-    fileNamePosLeft=f"Rep{RepNumber}_{user_name}_RingsPosLeft"
-    fileNameVelLeft=f"Rep{RepNumber}_{user_name}_RingsVelLeft"
-    fileNameForceLeft=f"Rep{RepNumber}_{user_name}_RingsForceLeft"
+    fileNamePos=f"Rep{RepNumber}_{user_name}_RingsPos_Double"
+    fileNameVel=f"Rep{RepNumber}_{user_name}_RingsVel_Double"
+    fileNameForce=f"Rep{RepNumber}_{user_name}_RingsForce_Double"
+    
 
     # Define root properties
     root.gravity=[0, 0, -5]
@@ -118,38 +106,19 @@ def createScene(root):
     skin_right=suture_models.Skin(parentNode=root, name='SkinRight', rotation=[0.0, 0.0, 0.0], translation=[11, 0, 0], 
     scale3d=scale3d_skin, fixingBox=[11, -0.1, -2, 22, 20, 0.1], side=1) 
 
-    station_type="Single"
+
+
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
-    if geomagic==True:
 
-        if station_type=="Double\n":
-            # Add geomagic drivers
-            root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="1", 
-            drawDevice="1", positionBase="20 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedle/LCPFFNeedle")
+    # Add geomagic drivers
+    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="1", 
+    drawDevice="0", positionBase="10 10 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedle/LCPFFNeedle")
 
-            root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
-            drawDevice="1", positionBase="0 20 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedleLeft/LCPFFNeedle")
-
-            # Add geomagic nodes
-            GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
-            GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
-            
-            # Add needles
-            suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
-            suture_models.StraightNeedle(parentNode=root, name='StraightNeedleLeft', monitor=True, file1=fileNamePosLeft, file2=fileNameVelLeft, file3=fileNameForceLeft, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
-
-
-        else: 
-            # Add geomagic drivers
-            root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="0", 
-            drawDevice="0", positionBase="11 10 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
-
-            # Add geomagic node
-            GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
-
-            # Add needle
-            suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
-
+    # Add geomagic nodes
+    GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
+    
+    # Add needles
+    suture_models.StraightNeedle(parentNode=root, name='StraightNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs') # To fall on sphere: dx=12, dy=3, dz=6
 
     #############################################################################################################
 
@@ -193,6 +162,7 @@ class RingsTaskController(Sofa.Core.Controller):
         self.contact_listener3 = rootNode.addObject('ContactListener', name="C3", collisionModel1 = suture_models.ring.C3, collisionModel2 = suture_models.StraightNeedle.COLL)
         self.contact_listener4 = rootNode.addObject('ContactListener', name="C4", collisionModel1 = suture_models.ring.C4, collisionModel2 = suture_models.StraightNeedle.COLL)
 
+        self.TouchedRings=0
     
     ## Method called at each begin of animation step
     # @param event: animation step event
@@ -203,22 +173,8 @@ class RingsTaskController(Sofa.Core.Controller):
 
         newMaterial="Default Diffuse 1 1 0 0 1 Ambient 1 0.2 0 0 1 Specular 0 1 0 0 1 Emissive 0 1 0 0 1 Shininess 0 45"
         oldMaterial="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45"
-        
-        # # Button1 == Black button; Button2 == Grey button
-        # if self.root.GeomagicDevice.findData('button2').value!=0: # If button is toggled
-        #     if suture_models.StraightNeedle.Monitor.findData('showTrajectories').value==1:
-        #         suture_models.StraightNeedle.Monitor.findData('showTrajectories').value=0
-        #     elif suture_models.StraightNeedle.Monitor.findData('showTrajectories').value==0:
-        #         suture_models.StraightNeedle.Monitor.findData('showTrajectories').value=1
-        
-        # if self.root.GeomagicDevice.findData('button1').value==1:
-        #     # self.root.animate = False
-        #     # self.root.init()
-        #     # self.root.animate = True
-        #     self.root.animate = False
-        #     subprocess.call(['D:\Thesis\GUI\plotRings.bat'])
-        #     self.root.quit()
-        
+
+
         # ring.M.texcoords.value and ring.M.findData('material').value give the same result.
         if self.contact_listener4.getNumberOfContacts()!=0: #4:1
             #print("contact1")
@@ -229,6 +185,7 @@ class RingsTaskController(Sofa.Core.Controller):
                 suture_models.ring.V2.findData('material').value=oldMaterial
             if suture_models.ring.V1.findData('material').value!=oldMaterial:
                 suture_models.ring.V1.findData('material').value=oldMaterial
+            self.TouchedRings+=1
 
         if self.contact_listener2.getNumberOfContacts()!=0:
             #print("contact2")
@@ -239,6 +196,7 @@ class RingsTaskController(Sofa.Core.Controller):
                 suture_models.ring.V4.findData('material').value=oldMaterial
             if suture_models.ring.V1.findData('material').value!=oldMaterial:
                 suture_models.ring.V1.findData('material').value=oldMaterial
+            self.TouchedRings+=1
 
         if self.contact_listener3.getNumberOfContacts()!=0: #3
             #print("contact3")
@@ -249,6 +207,7 @@ class RingsTaskController(Sofa.Core.Controller):
                 suture_models.ring.V2.findData('material').value=oldMaterial
             if suture_models.ring.V1.findData('material').value!=oldMaterial:
                 suture_models.ring.V1.findData('material').value=oldMaterial
+            self.TouchedRings+=1
 
         if self.contact_listener1.getNumberOfContacts()!=0:
             #print("contact4")
@@ -259,9 +218,8 @@ class RingsTaskController(Sofa.Core.Controller):
                 suture_models.ring.V2.findData('material').value=oldMaterial
             if suture_models.ring.V4.findData('material').value!=oldMaterial:
                 suture_models.ring.V4.findData('material').value=oldMaterial
+            self.TouchedRings+=1
         
-
-
 
 
 

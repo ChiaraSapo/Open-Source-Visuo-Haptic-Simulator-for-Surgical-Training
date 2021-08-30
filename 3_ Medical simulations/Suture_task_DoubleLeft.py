@@ -61,12 +61,12 @@ def createScene(root):
     # Read user name
     [RepNumber,user_name]=read_Files.read()
 
-    fileNamePos=f"Rep{RepNumber}_{user_name}_SuturePos_Double"
-    fileNameVel=f"Rep{RepNumber}_{user_name}_SutureVel_Double"
-    fileNameForce=f"Rep{RepNumber}_{user_name}_SutureForce_Double"
-    fileNamePosLeft=f"Rep{RepNumber}_{user_name}_SuturePosLeft_Double"
-    fileNameVelLeft=f"Rep{RepNumber}_{user_name}_SutureVelLeft_Double"
-    fileNameForceLeft=f"Rep{RepNumber}_{user_name}_SutureForceLeft_Double"
+    fileNamePos=f"Rep{RepNumber}_{user_name}_SuturePos_DoubleLeft"
+    fileNameVel=f"Rep{RepNumber}_{user_name}_SutureVel_DoubleLeft"
+    fileNameForce=f"Rep{RepNumber}_{user_name}_SutureForce_DoubleLeft"
+    fileNamePosLeft=f"Rep{RepNumber}_{user_name}_SuturePosLeft_DoubleLeft"
+    fileNameVelLeft=f"Rep{RepNumber}_{user_name}_SutureVelLeft_DoubleLeft"
+    fileNameForceLeft=f"Rep{RepNumber}_{user_name}_SutureForceLeft_DoubleLeft"
 
     # Define root properties
     root.gravity=[0, 0, -2]
@@ -98,8 +98,9 @@ def createScene(root):
     # View
     #root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -6.26277e-06 -0.000108372 0.908378")
 
+    # Add skin
     x=[8,8,13.5,13.5]
-    y=[3,10,6,14]
+    y=[6,14,3,10]
     z=2
     boxSize=2
 
@@ -197,7 +198,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
         self.LEFTcontact_listener = self.root.addObject('ContactListener', name="LEFTLeftContact", collisionModel1 = suture_models.Skin.COLL, collisionModel2 = suture_models.SutureNeedleLeft.COLL_FRONT)
         self.LEFTcontact_listener_right = self.root.addObject('ContactListener', name="LEFTRightContact", collisionModel1 = suture_models.Skin.COLL_right, collisionModel2 = suture_models.SutureNeedleLeft.COLL_FRONT)
 
-        self.state="Left"        
+        self.state="Right"       
         self.buttonState=0
 
 
@@ -213,7 +214,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
     def onAnimateBeginEvent(self, event):
 
         if self.first==1:
-            self.RightDevice()
+            self.LeftDevice()
 
         if self.root.GeomagicDeviceRight.findData('button2').value!=0:
             print("Change device right -> left")

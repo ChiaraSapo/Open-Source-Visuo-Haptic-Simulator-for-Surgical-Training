@@ -55,9 +55,9 @@ def createScene(root):
 
     [RepNumber,user_name]=read_Files.read()
 
-    fileNamePos=f"Rep{RepNumber}_{user_name}_Incision2Pos_Double"
-    fileNameVel=f"Rep{RepNumber}_{user_name}_Incision2Vel_Double"
-    fileNameForce=f"Rep{RepNumber}_{user_name}_Incision2Force_Double"
+    fileNamePos=f"Rep{RepNumber}_{user_name}_Incision4Pos_DoubleLeft"
+    fileNameVel=f"Rep{RepNumber}_{user_name}_Incision4Vel_DoubleLeft"
+    fileNameForce=f"Rep{RepNumber}_{user_name}_Incision4Force_DoubleLeft"
 
     # Define root properties
     root.gravity=[0, 0, -9]
@@ -81,7 +81,7 @@ def createScene(root):
     # Forces
     root.addObject('BruteForceDetection', name="detection")
     root.addObject('DefaultContactManager', name="CollisionResponse", response="FrictionContact")
-    root.addObject('LocalMinDistance', name="proximity", alarmDistance="0.4", contactDistance="0.1", angleCone="0.1")
+    root.addObject('LocalMinDistance', name="proximity", alarmDistance="0.1", contactDistance="0.01", angleCone="0.1")
 
     # Animation loop
     root.addObject('FreeMotionAnimationLoop')
@@ -118,19 +118,20 @@ def createScene(root):
     # borderBox7=[posx-0.1, boxes[6], -2, posx+0.6, boxes[7], 1],borderBox8=[posx-0.1, boxes[7], -2, posx+0.6, boxes[8], 1] ,borderBox9=[posx-0.1, boxes[8], -2, posx+0.6, boxes[9], 1], 
     # borderBox10=[posx-0.1, boxes[9], -2, posx+0.6, boxes[10], 1] , borderBox11=[posx-0.1, boxes[10], -2, posx+0.6, boxes[11], 1] , borderBox12=[posx-0.1, boxes[11], -2, posx+0.6, boxes[12], 1] )
 
-
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
-    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="0", 
-    drawDevice="0", positionBase="7 15 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedle/LCPFFNeedle")
 
-    GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
+    drawDevice="0", positionBase="7 15 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedleLeft/LCPFFNeedle")
+
+    GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
 
     # Add needles
-    incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs')
-    #incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs')
+    #incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs')
+    incision_models.Scalpel(parentNode=root, name='Scalpel', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs')
 
     ################################################################################################################
-    
+
+
     # Add controller
     root.addObject(IncisionTaskTrainingController(root, skin_left, skin_right))
   
@@ -458,8 +459,7 @@ class IncisionTaskTrainingController(Sofa.Core.Controller):
         self.contact_listener_right = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL_right, collisionModel2 = incision_models.Scalpel.COLL_FRONT)
         self.contact_listener2 = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL, collisionModel2 = incision_models.Scalpel.COLL_FRONT2)
         self.contact_listener2_right = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL_right, collisionModel2 = incision_models.Scalpel.COLL_FRONT2)
-        self.contact_listener3 = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL, collisionModel2 = incision_models.Scalpel.COLL_FRONT3)
-        self.contact_listener3_right = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL_right, collisionModel2 = incision_models.Scalpel.COLL_FRONT3)
+        
         self.rootNode=root
 
         self.spring_force_field1 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
@@ -534,8 +534,6 @@ class IncisionTaskTrainingController(Sofa.Core.Controller):
         coll_indexes_right=self.contact_listener_right.getContactElements()
         coll_indexes2=self.contact_listener2.getContactElements()
         coll_indexes2_right=self.contact_listener2_right.getContactElements()
-        coll_indexes3=self.contact_listener3.getContactElements()
-        coll_indexes3_right=self.contact_listener3_right.getContactElements()
         #print("Left top:", coll_indexes, " and right top: ", coll_indexes_right)#, "Left bottom:", coll_indexes2, " and right bottom: ", coll_indexes2_right)
         
         if coll_indexes!=[]:
@@ -553,14 +551,6 @@ class IncisionTaskTrainingController(Sofa.Core.Controller):
         elif coll_indexes2_right!=[] and coll_indexes_right==[]:     
             print("Contact right bottom")
             self.right_ff(coll_indexes2_right)  
-
-        if coll_indexes3!=[] and coll_indexes==[]:
-            print("Contact left bottom")
-            self.left_ff(coll_indexes3)   
-
-        elif coll_indexes3_right!=[] and coll_indexes_right==[]:     
-            print("Contact right bottom")
-            self.right_ff(coll_indexes3_right)  
             
     def left_ff(self, coll_indexes):   
         coll_indexes2=coll_indexes[0]

@@ -5,7 +5,7 @@ import Sofa.SofaDeformable
 import suture_models
 #from goto import goto, label
 import subprocess
-
+import read_Files
 
 # Data
 
@@ -21,7 +21,7 @@ needleVolume_fileName="mesh/suture_needle.obj"
 threadVolume_fileName="mesh/threadCh2"
 
 # Data
-stiffness_springNeedle=20
+stiffness_springNeedle=40
 stiffness_springSkins=100
 
 
@@ -58,18 +58,7 @@ def main():
 
 def createScene(root):
 
-    # Read user name
-    Config=open('C:/sofa/src/Chiara/Bats/Config.txt')
-    for line in Config:
-        pass
-    user_name = line
-    Config.close()
-
-    ConfigNumber=open('C:/sofa/src/Chiara/Repetitions.txt')
-    for line in ConfigNumber:
-        pass
-    RepNumber = line
-    ConfigNumber.close()
+    [RepNumber,user_name]=read_Files.read()
 
 
     fileNamePos=f"Rep{RepNumber}_{user_name}_SuturePos"
@@ -127,7 +116,7 @@ def createScene(root):
     GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
 
     # Add needle
-    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDevice.positionDevice",rx=180, ry=0, rz=0) # To fall on sphere: dx=12, dy=3, dz=6
+    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDevice.positionDevice",rx=90, ry=30, rz=0) # To fall on sphere: dx=12, dy=3, dz=6
 
     #############################################################################################################
 
@@ -306,8 +295,6 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
     
                         # Then remove the previous springs.
                         self.contactRight_disattach()
-                        
-                    
                     
                     # Set this box as the last one attached
                     self.boxAttached=suture_models.Skin.sphere3Box
@@ -323,8 +310,9 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
             # Does it belong to a box? If it does: 
             elif coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value:
                 print("Box 4")
-                # Set this box as the last one attached
-                self.boxAttached=suture_models.Skin.sphere4Box
+
+                # Change sphere color
+                suture_models.sphere.M4.findData('material').value=newMaterial
 
                 if self.springsCreated_right==False:
 
@@ -336,11 +324,9 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
                         # Then remove the previous springs.
                         self.contactRight_disattach()
                     
-                    # Change sphere color
-                    suture_models.sphere.M4.findData('material').value=newMaterial
-                    
-                    
-                    
+                    # Set this box as the last one attached
+                    self.boxAttached=suture_models.Skin.sphere4Box
+
                     # Create springs SkinLeft-Back_Needle
                     self.contactRight_attach(self.boxAttached)
                     
