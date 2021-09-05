@@ -30,7 +30,9 @@ set ENVNAME=thesis_env
 if %ENVNAME%==base (set ENVPATH=%CONDAPATH%) else (set ENVPATH=%CONDAPATH%\envs\%ENVNAME%)
 call %CONDAPATH%\Scripts\activate.bat %ENVPATH%
 python C:\sofa\src\Chiara\Bats\Task_GUI.py
+python C:\sofa\src\Chiara\Bats\Change_ee.py
 call conda deactivate
+
 
 rem RUN SURGICAL TASKS----------------------
 echo 1 >> C:/sofa/src/Chiara/Repetitions.txt
@@ -46,6 +48,15 @@ runSofa C:\sofa\src\Chiara\Incision_task4Left.py -a
 echo 6 >> C:/sofa/src/Chiara/Repetitions.txt
 runSofa C:\sofa\src\Chiara\Incision_task4Left.py -a
 
+
+rem RUN TASK GUI--------------------------
+set CONDAPATH=C:\Users\chiar\miniconda3
+set ENVNAME=thesis_env
+if %ENVNAME%==base (set ENVPATH=%CONDAPATH%) else (set ENVPATH=%CONDAPATH%\envs\%ENVNAME%)
+call %CONDAPATH%\Scripts\activate.bat %ENVPATH%
+python C:\sofa\src\Chiara\Bats\Change_ee.py
+call conda deactivate
+
 echo 7 >> C:/sofa/src/Chiara/Repetitions.txt
 runSofa C:\sofa\src\Chiara\Rings_task_DoubleLeft.py -a
 echo 8 >> C:/sofa/src/Chiara/Repetitions.txt
@@ -58,6 +69,15 @@ echo 11 >> C:/sofa/src/Chiara/Repetitions.txt
 runSofa C:\sofa\src\Chiara\Rings_task_DoubleLeft.py -a
 echo 12 >> C:/sofa/src/Chiara/Repetitions.txt
 runSofa C:\sofa\src\Chiara\Rings_task_DoubleLeft.py -a
+
+
+rem RUN TASK GUI--------------------------
+set CONDAPATH=C:\Users\chiar\miniconda3
+set ENVNAME=thesis_env
+if %ENVNAME%==base (set ENVPATH=%CONDAPATH%) else (set ENVPATH=%CONDAPATH%\envs\%ENVNAME%)
+call %CONDAPATH%\Scripts\activate.bat %ENVPATH%
+python C:\sofa\src\Chiara\Bats\Change_ee.py
+call conda deactivate
 
 echo 13 >> C:/sofa/src/Chiara/Repetitions.txt
 runSofa C:\sofa\src\Chiara\Suture_taskLeft.py -a

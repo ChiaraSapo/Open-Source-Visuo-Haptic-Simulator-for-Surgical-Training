@@ -51,7 +51,7 @@ def createScene(root):
     root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaCarving SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
     #root.addObject('VisualStyle', displayFlags="showInteractionForceFields")
     root.addObject('OglLabel', label="FOLLOW THE LINE", x=20, y=20, fontsize=30, selectContrastingColor="1")
-    #root.addObject('ViewerSetting', fullscreen="true")
+    root.addObject('ViewerSetting', fullscreen="true")
     root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
@@ -72,7 +72,7 @@ def createScene(root):
 
         # Add geomagic drivers
 
-    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="0", 
     drawDevice="0", positionBase="2 2 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedleLeft/LCPFFNeedle")
 
     # Add geomagic nodes

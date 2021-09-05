@@ -62,7 +62,7 @@ def WindowFAM(winFAM):
        LINE1b.place(x=xentry, y=yentry+25)#, anchor='nw')
        LINE1b.configure(background='LightBlue1')
 
-       LINE2 = tk.Label(winFAM, text = 'Ci saranno alcuni semplici esercizi in cui seguire una traiettoria dritta/curva e altri in cui poter tastare semplici oggetti', font=('calibre', 15, 'bold'))
+       LINE2 = tk.Label(winFAM, text = 'Ci saranno alcuni semplici esercizi in cui seguire una traiettoria dritta e altri in cui poter tastare semplici oggetti', font=('calibre', 15, 'bold'))
        LINE2.place(x=xentry2, y=yentry2, anchor='nw')
        LINE2.configure(background='LightBlue1')
 

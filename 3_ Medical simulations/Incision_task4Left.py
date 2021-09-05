@@ -67,7 +67,7 @@ def createScene(root):
 
     #root.addObject('OglLabel', label="INCISION TASK", x=20, y=20, fontsize=30, selectContrastingColor="1")
     #root.addObject('OglLabel', label="Cut the skin in correnspondence of the central line", x=20, y=70, fontsize=20, selectContrastingColor="1")
-    #root.addObject('ViewerSetting', fullscreen="true")
+    root.addObject('ViewerSetting', fullscreen="true")
     root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
 
     #root.addObject('OglViewport', screenSize="250 250" , screenPosition="0 0", cameraPosition="7.54243 16.2274 18.8554", cameraOrientation="0 0 0 1")
@@ -120,7 +120,7 @@ def createScene(root):
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
 
-    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="0", 
     drawDevice="0", positionBase="7 15 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedleLeft/LCPFFNeedle")
 
     GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")

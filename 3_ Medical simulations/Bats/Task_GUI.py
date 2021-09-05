@@ -75,11 +75,11 @@ def WindowFAM(winFAM):
        LINE3.configure(background='LightBlue1')
 
        # Take lines in input: USER NAME
-       LINE1 = tk.Label(winFAM, text = 'Per la sutura: Inserire l ago in corrispondenza delle sferette colorate, procededendo quando diventano verdi.', font=('calibre', 15, 'bold'))
+       LINE1 = tk.Label(winFAM, text = 'Per la sutura: Inserire l ago in corrispondenza delle sfereì colorate, procededendo quando diventano verdi.', font=('calibre', 15, 'bold'))
        LINE1.place(x=xentry3, y=yentry3+25, anchor='nw')
        LINE1.configure(background='LightBlue1')
 
-       LINE1b = tk.Label(winFAM, text = 'e partendo dalla sfera più lontana. Quando tutte le sferette sono verdi: Premere nuovamente il bottone del Geomagic.', font=('calibre', 15, 'bold'))
+       LINE1b = tk.Label(winFAM, text = 'e partendo dalla sfera più lontana. Quando sonno tutte verdi: Premere nuovamente il bottone.', font=('calibre', 15, 'bold'))
        LINE1b.place(x=xentry4, y=yentry4, anchor='nw')
        LINE1b.configure(background='LightBlue1')
 
@@ -88,7 +88,7 @@ def WindowFAM(winFAM):
        LINE4.configure(background='LightBlue1')
        
               # Images
-       image2 = Image.open("Images/ring.png")
+       image2 = Image.open("C:\sofa\src\Chiara\Bats\Images/cut.png")
        image2 = image2.resize((300, 200), Image.ANTIALIAS)
        image2 = ImageTk.PhotoImage(image2)
        label3 = tk.Label(winFAM, image=image2)
@@ -97,7 +97,7 @@ def WindowFAM(winFAM):
        label3.configure(background='LightBlue1')
 
        # Images
-       image1 = Image.open("Images/cut.png")
+       image1 = Image.open("C:\sofa\src\Chiara\Bats\Images/ring.png")
        image1 = image1.resize((300, 200), Image.ANTIALIAS)
        image1 = ImageTk.PhotoImage(image1)
        label2 = tk.Label(winFAM, image=image1)
@@ -107,7 +107,7 @@ def WindowFAM(winFAM):
 
        
               # Images
-       image3 = Image.open("Images/sut.png")
+       image3 = Image.open("C:\sofa\src\Chiara\Bats\Images/sut.png")
        image3 = image3.resize((300, 200), Image.ANTIALIAS)
        image3 = ImageTk.PhotoImage(image3)
        label13 = tk.Label(winFAM, image=image3)

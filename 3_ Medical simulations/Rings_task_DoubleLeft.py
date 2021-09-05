@@ -78,11 +78,11 @@ def createScene(root):
     # Required plugins
     root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
     
-    root.addObject('OglLabel', label="RINGS TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
-    root.addObject('OglLabel', label="Pass through the rings without touching them,", x=20, y=70, fontsize=20, selectContrastingColor="1")
-    root.addObject('OglLabel', label="starting from the one closest to you", x=20, y=100, fontsize=20, selectContrastingColor="1")
+    # root.addObject('OglLabel', label="RINGS TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
+    # root.addObject('OglLabel', label="Pass through the rings without touching them,", x=20, y=70, fontsize=20, selectContrastingColor="1")
+    # root.addObject('OglLabel', label="starting from the one closest to you", x=20, y=100, fontsize=20, selectContrastingColor="1")
     root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
-    #root.addObject('ViewerSetting', fullscreen="true")
+    root.addObject('ViewerSetting', fullscreen="true")
 
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
@@ -114,7 +114,7 @@ def createScene(root):
 
     # Add geomagic drivers
 
-    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="0", 
     drawDevice="0", positionBase="10 10 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedleLeft/LCPFFNeedle")
 
     # Add geomagic nodes
@@ -126,10 +126,10 @@ def createScene(root):
     #############################################################################################################
 
     # Add training rings
-    suture_models.ring(parentNode=root, name="Ring1", translation=[7, 4, 4], scale3d="1.5 1.5 1.5",  RingModelNumber="M1")
+    suture_models.ring(parentNode=root, name="Ring1", translation=[7, 5, 4], scale3d="1.5 1.5 1.5",  RingModelNumber="M1")
     suture_models.ring(parentNode=root, name="Ring2", translation=[7, 12, 4], scale3d="1.5 1.5 1.5",  RingModelNumber="M2")
-    suture_models.ring(parentNode=root, name="Ring3", translation=[13, 8, 4], scale3d="1.5 1.5 1.5",  RingModelNumber="M3")
-    suture_models.ring(parentNode=root, name="Ring4", translation=[13, 16, 4], scale3d="1.5 1.5 1.5", RingModelNumber="M4")
+    suture_models.ring(parentNode=root, name="Ring3", translation=[13, 8.5, 4], scale3d="1.5 1.5 1.5",  RingModelNumber="M3")
+    suture_models.ring(parentNode=root, name="Ring4", translation=[13, 15.5, 4], scale3d="1.5 1.5 1.5", RingModelNumber="M4")
 
     # Add Rings controller    
     root.addObject(RingsTaskController(name="MyController", rootNode=root))

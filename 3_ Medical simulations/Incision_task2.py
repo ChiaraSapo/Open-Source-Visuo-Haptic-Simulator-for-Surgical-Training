@@ -528,6 +528,8 @@ class IncisionTaskTrainingController(Sofa.Core.Controller):
     # # Uncomment to recompute indices
     def onAnimateBeginEvent(self, event): 
 
+        print(incision_models.Scalpel.COLL_MO.findData('position').value)
+
         #print(self.rootNode.GeomagicDevice.forceFeedBack)
         #print("1")
         coll_indexes=self.contact_listener.getContactElements()

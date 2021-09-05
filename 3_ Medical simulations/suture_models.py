@@ -12,10 +12,69 @@ needleVolume_fileName="C:\sofa\src\Chiara\mesh\suture_needle.obj"
 threadVolume_fileName="C:\sofa\src\Chiara\mesh\threadCh2"
 
 # Data
-skin_youngModulus=3000#300
+skin_youngModulus=4000#300
 thread_youngModulus=2000
 skin_poissonRatio=0.1
 thread_poissonRatio=0.8
+
+#ym3000, density2
+
+## This function defines a suture needle node with behavior/collision/visual models. It is mostly the same as SutureNeedle class............
+# @param parentNode: parent node of the suture needle
+# @param name: name of the behavior node
+# @param scale3d: scale of the needle along all directions
+# @param geomagic: if True, the needle is positioned on the Geomagic end effector
+# @param position: position of the geomagic end effector
+# @param external_rest_shape: rest shape of the geomagic end effector
+# @param monitor: if True, saves position, velocity and force of the needle 
+# @param file1: name of the file that saves positions
+# @param file2: name of the file that saves velocities
+# @param file3: name of the file that saves forces
+
+def Plier(parentNode=None, name=None, scale3d=[0.0, 0.0, 0.0], 
+position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs', # position and external_rest_shape are set by default for the single station case 
+monitor=False, file1=None, file2=None, file3=None, rx=0, ry=0, rz=0): # If plots are desired: save results in three different files
+    
+    # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
+
+    name=parentNode.addChild(name)
+    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
+    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
+    name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position=position, scale3d="2", rotation="0 0 10" ) #, src="@instrumentMeshLoader")
+    name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='100', angularStiffness='100', external_rest_shape=external_rest_shape, points='0', external_points='0') 
+    name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.005", activate="true")# Decide forceCoef value better
+    name.addObject('UniformMass' , totalMass="3")
+    name.addObject('UncoupledConstraintCorrection')
+
+    Visu=name.addChild('Visu')
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/Forceps.obj", scale="0.5", handleSeams="1" )
+    Visu.addObject('OglModel', name="Visual", src='@meshLoader_3', rx=rx, ry=ry, rz=rz,  dz="0", dx="-1.5", dy="0",  color="0 0.5 0.796", scale=1)
+    Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
+
+    collFront = name.addChild('collFront') #"-4.2 0.02 -0.25" for scale5
+    collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="0 0 0", rx=rx, ry=ry, rz=rz,  dz="0", dx="1", dy="0")
+    collFront.addObject('SphereCollisionModel', radius="0.5", name="SphereCollisionInstrument", contactStiffness="2", tags="CarvingTool")
+    #collFront.addObject('UniformMass', totalMass=1)
+    collFront.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
+
+
+    collBack = name.addChild('collBack') #"-4.2 0.02 -0.25" for scale5
+    collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0 0", rx=rx, ry=ry, rz=rz,  dz="0", dx="-4", dy="0")
+    collBack.addObject('SphereCollisionModel', radius="0.5", name="SphereCollisionInstrument2", contactStiffness="2", tags="CarvingTool")
+    #collFront.addObject('UniformMass', totalMass=1)
+    collBack.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
+
+
+    if monitor==True:
+        collFront.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true", showTrajectories=0)
+        collFront.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
+        collFront.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="0", ExportForces="true")
+
+    Plier.COLL_FRONT=name.collFront.SphereCollisionInstrument.getLinkPath()
+    Plier.COLL_BACK_MO=name.collBack.Particle2.getLinkPath()
+
+
+
 
 
 ## This function defines a training sphere node with visual model
@@ -124,7 +183,7 @@ side=0, sphere1Box=[0.0, 0.0, 0.0], sphere2Box=[0.0, 0.0, 0.0],sphere3Box=[0.0, 
 
     # Mechanical object and mass
     name.addObject('MechanicalObject', name='SkinMechObj',  template='Vec3d', translation=translation) #src=,'@volumeLoader') added src for trial
-    name.addObject('DiagonalMass', name="SkinMass", massDensity="2.0")#, template="Vec3d,double"
+    name.addObject('DiagonalMass', name="SkinMass", massDensity="1.0")#, template="Vec3d,double"
 
     # Forces
     name.addObject('TetrahedronFEMForceField', template='Vec3d', name='FEM', method='large', youngModulus=skin_youngModulus, poissonRatio=skin_poissonRatio)
@@ -248,17 +307,24 @@ monitor=False, file1=None, file2=None, file3=None, rx=0, ry=0, rz=0): # If plots
     collFront.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
 
     collBack = name.addChild('collBack') #"0 0.007 -0.25" for scale5
-    collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0.007 -0.25", rx=rx, ry=ry, rz=rz,  dz="0", dx="0", dy="0")
-    collBack.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument2", contactStiffness="2")
+    collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0.5 0.007 -0.25", rx=rx, ry=ry, rz=rz,  dz="0", dx="0", dy="0")
+    collBack.addObject('SphereCollisionModel', radius="0.3", name="SphereCollisionInstrument2", contactStiffness="2")
     #collBack.addObject('UniformMass', totalMass=1)
     collBack.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
+
+    # collMiddle = name.addChild('collMiddle') #"0 0.007 -0.25" for scale5
+    # collMiddle.addObject('MechanicalObject', template="Vec3d", name="Particle3", position="-2 0.007 -0.25", rx=rx, ry=ry, rz=rz,  dz="0", dx="0", dy="0")
+    # collMiddle.addObject('SphereCollisionModel', radius="0.3", name="SphereCollisionInstrument3", contactStiffness="2")
+    # #collBack.addObject('UniformMass', totalMass=1)
+    # collMiddle.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle3")
     
     if monitor==True:
-        collBack.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true", showTrajectories=0)
-        collBack.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
-        collBack.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="0", ExportForces="true")
+        collFront.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true", showTrajectories=0)
+        collFront.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
+        collFront.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="0", ExportForces="true")
 
     SutureNeedle.ITSELF=name
+    SutureNeedle.COLL_MO=name.collFront.Particle
     SutureNeedle.COLL=name.Surf.Torus2Point.getLinkPath()
     SutureNeedle.MO=name.InstrumentMechObject.getLinkPath()
     SutureNeedle.COLL_BACK_MO=name.collBack.Particle2.getLinkPath()
@@ -325,9 +391,9 @@ monitor=False, file1=None, file2=None, file3=None, rx=0, ry=0, rz=0): # If plots
     collBack.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
     
     if monitor==True:
-        collBack.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true", showTrajectories=0)
-        collBack.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
-        collBack.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="0", ExportForces="true")
+        collFront.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true", showTrajectories=0)
+        collFront.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
+        collFront.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="0", ExportForces="true")
 
     SutureNeedleLeft.ITSELF=name
     SutureNeedleLeft.COLL=name.Surf.Torus2Point.getLinkPath()
@@ -352,7 +418,7 @@ monitor=False, file1=None, file2=None, file3=None, rx=0, ry=0, rz=0): # If plots
 # @param file2: name of the file that saves velocities
 # @param file3: name of the file that saves forces
 
-def StraightNeedle(parentNode=None, name=None, scale3d=[0.1, 0.4, 0.4], color=[0.0, 0.0, 0.0],
+def StraightNeedle(parentNode=None, name=None, scale3d=[0.06, 0.5, 0.5], color=[0.0, 0.0, 0.0],
 position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs', # position and external_rest_shape are set by default for the single station case 
 monitor=False, file1=None, file2=None, file3=None): 
 
@@ -388,7 +454,7 @@ monitor=False, file1=None, file2=None, file3=None):
 
     StraightNeedle.ITSELF=name
     StraightNeedle.COLL=name.Surf.Torus2Point.getLinkPath()
-    StraightNeedle.MO=name.InstrumentMechObject.getLinkPath()
+    StraightNeedle.MO=name.InstrumentMechObject#.getLinkPath()
     StraightNeedle.POS=name.InstrumentMechObject.findData('position').value
     StraightNeedle.MO_TAG=name.InstrumentMechObject
 
@@ -404,7 +470,7 @@ monitor=False, file1=None, file2=None, file3=None):
 # @param file2: name of the file that saves velocities
 # @param file3: name of the file that saves forces
 
-def StraightNeedleLeft(parentNode=None, name=None, scale3d=[0.1, 0.4, 0.4], color=[0.0, 0.0, 0.0],
+def StraightNeedleLeft(parentNode=None, name=None, scale3d=[0.06, 0.5, 0.5], color=[0.0, 0.0, 0.0],
 position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs', # position and external_rest_shape are set by default for the single station case 
 monitor=False, file1=None, file2=None, file3=None): 
 

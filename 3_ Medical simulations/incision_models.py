@@ -232,57 +232,6 @@ borderBox9=[0.0, 0.0, 0.0],borderBox10=[0.0, 0.0, 0.0], borderBox11=[0.0, 0.0, 0
 
 
 
-
-''' Does not cut...
-def Scalpel2(parentNode=None, name=None, scale3d=[0.0, 0.0, 0.0], monitor=False, file1=None, file2=None, file3=None): 
-    # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
-
-    name=parentNode.addChild(name)
-    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
-    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
-
-    name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position="@GeomagicDevice.positionDevice", scale="1.0", rotation="0 0 10",  dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90") #, src="@instrumentMeshLoader")
-    #name.addObject("Monitor", input="@InstrumentMechObject", name="ooooooooooooo", indices="0", listening="1", showForces="1", ExportForces="true")
-    name.addObject('RestShapeSpringsForceField', stiffness='100', angularStiffness='100', external_rest_shape='@../Omni/DOFs', points='0', external_points='0') 
-    name.addObject('LCPForceFeedback', name="LCPFFScalpel",  forceCoef="0.007", activate="true")# Decide forceCoef value better
-
-    name.addObject('UniformMass' , totalMass="6")
-    name.addObject('UncoupledConstraintCorrection')
-    
-
-    Visu=name.addChild('Visu')
-    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/scalpel.obj", scale="1.0", handleSeams="1" )
-    Visu.addObject('OglModel' ,name="Visual" ,src="@meshLoader_3",  color="0 0.5 0.796", dz="7", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
-    Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
-    
-    Surf=name.addChild('Surf')
-    Surf.addObject('MeshObjLoader' ,filename="mesh/scalpel.obj" ,name="loader" )
-    Surf.addObject('MeshTopology' ,src="@loader")
-    Surf.addObject('MechanicalObject' ,src="@loader", scale="1.0",  dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
-    Surf.addObject('TriangleCollisionModel', name="Torus2Triangle")# , contactStiffness="2")#, tags="CarvingTool")
-    Surf.addObject('LineCollisionModel', name="Torus2Line" , contactStiffness="1000")#, tags="CarvingTool")
-    Surf.addObject('PointCollisionModel' ,name="Torus2Point" , contactStiffness="1000")#, tags="CarvingTool")
-    Surf.addObject('RigidMapping')
-    
-
-    collFront = name.addChild('collFront')
-    collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5",  dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
-    #collFront.addObject('UniformMass', totalMass="0.01")
-    collFront.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument", tags="CarvingTool")
-    collFront.addObject('RigidMapping')#, template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
-
-    collFront2 = name.addChild('collFront2')
-    collFront2.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5",  dz="4", dx="-4", dy="-2.2",  rx="0", ry="0", rz="90")
-    collFront2.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument2", contactStiffness="1", tags="CarvingTool")
-    collFront2.addObject('RigidMapping')#, template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
-
-    Scalpel.MO=name.InstrumentMechObject
-    # Scalpel.POS=name.InstrumentMechObject.findData('position').value
-    #Scalpel.COLL_FRONT=name.Surf.Torus2Triangle.getLinkPath()
-    Scalpel.COLL_FRONT=name.collFront.SphereCollisionInstrument.getLinkPath()
-    Scalpel.COLL_FRONT2=name.collFront2.SphereCollisionInstrument2.getLinkPath()
-'''
-
 ## This function defines a scalpel node with behavior/collision/visual models
 # @param parentNode: parent node of the scalpel
 # @param name: name of the behavior node
@@ -292,7 +241,7 @@ def Scalpel2(parentNode=None, name=None, scale3d=[0.0, 0.0, 0.0], monitor=False,
 # @param file2: name of the file that saves velocities
 # @param file3: name of the file that saves forces
 
-def Scalpel(parentNode=None, name=None, scale3d=[0.0, 0.0, 0.0], monitor=False, file1=None, file2=None, file3=None, position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs'): 
+def ScalpelEntire(parentNode=None, name=None, scale3d=[0.0, 0.0, 0.0], monitor=False, file1=None, file2=None, file3=None, position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs'): 
 
     name=parentNode.addChild(name)
     name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
@@ -349,6 +298,69 @@ def Scalpel(parentNode=None, name=None, scale3d=[0.0, 0.0, 0.0], monitor=False, 
     Scalpel.COLL_FRONT=name.collFront.SphereCollisionInstrument.getLinkPath()
     Scalpel.COLL_FRONT2=name.collFront2.SphereCollisionInstrument2.getLinkPath()
     Scalpel.COLL_FRONT3=name.collFront3.SphereCollisionInstrument3.getLinkPath()
+
+
+
+
+#ScalpelBlade
+def Scalpel(parentNode=None, name=None, scale3d=[0.0, 0.0, 0.0], monitor=False, file1=None, file2=None, file3=None, position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs'): 
+
+    name=parentNode.addChild(name)
+    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
+    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
+    #if geomagic==True:
+    name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position=position, scale="1.0", rotation="0 0 10",  dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90") #, src="@instrumentMeshLoader")
+    name.addObject('RestShapeSpringsForceField', stiffness='1000', angularStiffness='1000', external_rest_shape=external_rest_shape, points='0', external_points='0') 
+    name.addObject('LCPForceFeedback', name="LCPFFScalpel",  forceCoef="0.005", activate="true")# Decide forceCoef value better 0.005
+    #else: 
+    #    name.addObject('MechanicalObject', name="InstrumentMechObject", template="Rigid3d", scale="1.0" ,dx="8", dy="3", dz="25")
+    name.addObject('UniformMass' , totalMass="5")
+    name.addObject('UncoupledConstraintCorrection')
+
+
+    Visu=name.addChild('Visu')
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/scalpel_blade.obj", scale="1.0", handleSeams="1" )
+    Visu.addObject('OglModel' ,name="Visual" ,src="@meshLoader_3",  color="0 0.5 0.796", dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
+    Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
+    
+    Surf=name.addChild('Surf')
+    Surf.addObject('MeshObjLoader' ,filename="mesh/scalpel_blade.obj" ,name="loader" )
+    Surf.addObject('MeshTopology' ,src="@loader")
+    Surf.addObject('MechanicalObject' ,src="@loader", name="InstrumentMechObject", scale="1.0",  dz="2", dx="-4", dy="-3",  rx="0", ry="0", rz="90")
+    Surf.addObject('TriangleCollisionModel', name="Torus2Triangle" )#??????', contactStiffness="1000")#, tags="CarvingTool")
+    Surf.addObject('LineCollisionModel', name="Torus2Line" , contactStiffness="1000")#, tags="CarvingTool")
+    Surf.addObject('PointCollisionModel' ,name="Torus2Point" , contactStiffness="10000")#, tags="CarvingTool")
+    #Surf.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportForces="true")
+    Surf.addObject('RigidMapping')
+
+    collFront = name.addChild('collFront')
+    collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5",  dz="2", dx="-4", dy="-3.2",  rx="0", ry="0", rz="90")
+    collFront.addObject('SphereCollisionModel', radius="0.1", name="SphereCollisionInstrument", contactStiffness="1", tags="CarvingTool")
+    collFront.addObject('RigidMapping')#, template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
+
+    if monitor==True:
+        collFront.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true")
+        collFront.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
+
+    collFront2 = name.addChild('collFront2')
+    collFront2.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5",  dz="4.8", dx="-4", dy="-4.3",  rx="0", ry="0", rz="90")
+    collFront2.addObject('SphereCollisionModel', radius="0.1", name="SphereCollisionInstrument2", contactStiffness="1", tags="CarvingTool")
+    collFront2.addObject('RigidMapping')#, template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
+
+    collFront3 = name.addChild('collFront3')
+    collFront3.addObject('MechanicalObject', template="Vec3d", name="Particle", position="4 -3.7 -8.5",  dz="3.4", dx="-4", dy="-4.1",  rx="0", ry="0", rz="90")
+    collFront3.addObject('SphereCollisionModel', radius="0.1", name="SphereCollisionInstrument3", contactStiffness="1", tags="CarvingTool")
+    collFront3.addObject('RigidMapping')#, template="Rigid3d,Vec3d", name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
+
+    Scalpel.MO=name.InstrumentMechObject.getLinkPath()
+    Scalpel.POS=name.InstrumentMechObject.findData('position').value
+    Scalpel.COLL_MO=name.collFront.Particle
+    Scalpel.COLL_FRONT=name.Surf.Torus2Triangle.getLinkPath()
+    Scalpel.COLL_FRONT=name.collFront.SphereCollisionInstrument.getLinkPath()
+    Scalpel.COLL_FRONT2=name.collFront2.SphereCollisionInstrument2.getLinkPath()
+    Scalpel.COLL_FRONT3=name.collFront3.SphereCollisionInstrument3.getLinkPath()
+
+
 
 
 

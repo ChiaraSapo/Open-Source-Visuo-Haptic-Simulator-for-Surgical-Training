@@ -75,10 +75,10 @@ def createScene(root):
     # Required plugins
     root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaCarving SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
 
-    root.addObject('OglLabel', label="SUTURE TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
-    root.addObject('OglLabel', label="Pierce the skin in correnspondence of the green spheres", x=20, y=70, fontsize=20, selectContrastingColor="1")
-    root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
-    #root.addObject('ViewerSetting', fullscreen="true")
+    # root.addObject('OglLabel', label="SUTURE TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
+    # root.addObject('OglLabel', label="Pierce the skin in correnspondence of the green spheres", x=20, y=70, fontsize=20, selectContrastingColor="1")
+    # root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
+    root.addObject('ViewerSetting', fullscreen="true")
     root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
     
     # Collision pipeline
@@ -100,7 +100,7 @@ def createScene(root):
 
     # Add skin
     x=[8,8,13.5,13.5]
-    y=[6,14,3,10]
+    y=[5,10.5,4.5,10]
     z=2
     boxSize=2
 
@@ -113,17 +113,17 @@ def createScene(root):
     sphere3Box=[x[2]-boxSize, y[2]-boxSize, -0.1, x[2]+boxSize, y[2]+boxSize, 3], sphere4Box=[x[3]-boxSize, y[3]-boxSize, -0.1, x[3]+boxSize, y[3]+boxSize, 3], side=1) 
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
-    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="0", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="1", 
     drawDevice="0", positionBase="20 8 10",  orientationBase="0.707 0 0 0.707", forceFeedBack="@SutureNeedle/LCPFFNeedle")
 
-    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="0", 
     drawDevice="0", positionBase="3 8 10",  orientationBase="0.707 0 0 0.707", forceFeedBack="@SutureNeedleLeft/LCPFFNeedle")
 
     GeomagicDevice(parentNode=root, name='OmniRight', position="@GeomagicDeviceRight.positionDevice")
     GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
 
     # Add needles
-    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs', rx=90, ry=30, rz=0) # To fall on sphere: dx=12, dy=3, dz=
+    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice", external_rest_shape='@../OmniRight/DOFs', rx=180, ry=30, rz=0) # To fall on sphere: dx=12, dy=3, dz=
     suture_models.SutureNeedleLeft(parentNode=root, name='SutureNeedleLeft', monitor=True, file1=fileNamePosLeft, file2=fileNameVelLeft, file3=fileNameForceLeft, position="@GeomagicDeviceLeft.positionDevice", external_rest_shape='@../OmniLeft/DOFs', rx=90, ry=180, rz=0) # To fall on sphere: dx=12, dy=3, dz=6
 
     #############################################################################################################
@@ -272,7 +272,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
             coll_index_skin=coll_indexes2[1]
 
             # Does it belong to box 1? If it does: 
-            if coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value:
+            if (coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]>=2):
                 print("Box 1")    
                 
                 # Change sphere color
@@ -302,7 +302,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
     
             
             # Does it belong to box 2? If it does: 
-            elif coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value:
+            elif (coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value ) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]>=2):
                 print("Box 2")
                 # Change sphere color
                 suture_models.sphere.M2.findData('material').value=newMaterial
@@ -346,7 +346,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
             # print("index", coll_index_skin)
 
             # Does it belong to a box? If it does: 
-            if coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value:
+            if (coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value ) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]<=1):
                 print("Box 3")
                 # Change sphere color
                 suture_models.sphere.M3.findData('material').value=newMaterial
@@ -373,7 +373,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
                 self.finished=True
     
             # Does it belong to a box? If it does: 
-            elif coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value:
+            elif (coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value ) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]<=1):
                 print("Box 4")
 
                 # Change sphere color
@@ -424,7 +424,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
             coll_index_skin=coll_indexes2[1]
 
             # Does it belong to box 1? If it does: 
-            if coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value:
+            if (coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]>=2):
                 print("Box 1")    
                 
                 # Change sphere color
@@ -454,7 +454,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
     
             
             # Does it belong to box 2? If it does: 
-            elif coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value:
+            elif (coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]>=2):
                 print("Box 2")
                 # Change sphere color
                 suture_models.sphere.M2.findData('material').value=newMaterial
@@ -498,7 +498,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
             # print("index", coll_index_skin)
 
             # Does it belong to a box? If it does: 
-            if coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value:
+            if (coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]<=1):
                 print("Box 3")
                 # Change sphere color
                 suture_models.sphere.M3.findData('material').value=newMaterial
@@ -525,7 +525,7 @@ class SutureTrainingContactControllerDoubleHaptic(Sofa.Core.Controller):
                 self.finished=True
     
             # Does it belong to a box? If it does: 
-            elif coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value:
+            elif (coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]<=1):
                 print("Box 4")
 
                 # Change sphere color

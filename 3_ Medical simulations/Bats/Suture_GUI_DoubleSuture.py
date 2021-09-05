@@ -96,7 +96,7 @@ def WindowFAM(winFAM):
        submit_button.place(x=xSubmit, y=ySubmit)
 
               # Images
-       image1 = Image.open("Images/sut.png")
+       image1 = Image.open("C:\sofa\src\Chiara\Bats\Images/sut.png")
        image1 = image1.resize((400, 300), Image.ANTIALIAS)
        image1 = ImageTk.PhotoImage(image1)
        label2 = tk.Label(winFAM, image=image1)

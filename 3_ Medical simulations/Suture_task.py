@@ -6,6 +6,7 @@ import suture_models
 #from goto import goto, label
 import subprocess
 import read_Files
+import time
 
 # Data
 
@@ -20,9 +21,8 @@ skinVolume_fileName="mesh/skin_volume_403020_05" #03 troppo lento
 needleVolume_fileName="mesh/suture_needle.obj"
 threadVolume_fileName="mesh/threadCh2"
 
-# Data
-stiffness_springNeedle=40
-stiffness_springSkins=100
+stiffness_springNeedle=150 #100 #300 slows sim
+stiffness_springSkins=200
 
 
 
@@ -72,10 +72,10 @@ def createScene(root):
     # Required plugins
     root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaCarving SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
 
-    root.addObject('OglLabel', label="SUTURE TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
-    root.addObject('OglLabel', label="Pierce the skin in correnspondence of the green spheres", x=20, y=70, fontsize=20, selectContrastingColor="1")
-    root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
-    #root.addObject('ViewerSetting', fullscreen="true")
+    # root.addObject('OglLabel', label="SUTURE TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
+    # root.addObject('OglLabel', label="Pierce the skin in correnspondence of the green spheres", x=20, y=70, fontsize=20, selectContrastingColor="1")
+    # root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
+    root.addObject('ViewerSetting', fullscreen="true")
     root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
 
     # Collision pipeline
@@ -97,7 +97,7 @@ def createScene(root):
 
     # Add skin
     x=[8,8,13.5,13.5]
-    y=[3,10,6,14]
+    y=[4,10,4.5,10.5]
     z=2
     boxSize=2
 
@@ -110,13 +110,13 @@ def createScene(root):
     sphere3Box=[x[2]-boxSize, y[2]-boxSize, -0.1, x[2]+boxSize, y[2]+boxSize, 3], sphere4Box=[x[3]-boxSize, y[3]-boxSize, -0.1, x[3]+boxSize, y[3]+boxSize, 3], side=1) 
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
-    root.addObject('GeomagicDriver', name="GeomagicDevice", deviceName="Default Device", scale="1", drawDeviceFrame="0", 
-    drawDevice="0", positionBase="10 8 10",  orientationBase="0.707 0 0 0.707", tags="Omni", forceFeedBack="@SutureNeedle/LCPFFNeedle")
+    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="0", 
+    drawDevice="0", positionBase="10 6 10",  orientationBase="0.707 0 0 0.707", tags="Omni", forceFeedBack="@SutureNeedle/LCPFFNeedle")
     
-    GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDevice.positionDevice")
+    GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDeviceRight.positionDevice")
 
     # Add needle
-    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDevice.positionDevice",rx=90, ry=30, rz=0) # To fall on sphere: dx=12, dy=3, dz=6
+    suture_models.SutureNeedle(parentNode=root, name='SutureNeedle', monitor=True, file1=fileNamePos, file2=fileNameVel, file3=fileNameForce, position="@GeomagicDeviceRight.positionDevice",rx=90, ry=30, rz=0) # To fall on sphere: dx=12, dy=3, dz=6
 
     #############################################################################################################
 
@@ -161,6 +161,9 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
         # Define contact listeners (SkinLeft-Needle; SkinRight-Needle)
         self.contact_listener = rootNode.addObject('ContactListener', name="LeftContact", collisionModel1 = suture_models.Skin.COLL, collisionModel2 = suture_models.SutureNeedle.COLL_FRONT)
         self.contact_listener_right = rootNode.addObject('ContactListener', name="RightContact", collisionModel1 = suture_models.Skin.COLL_right, collisionModel2 = suture_models.SutureNeedle.COLL_FRONT)
+        # Define contact listeners (SkinLeft-Needle; SkinRight-Needle)
+        self.contact_listener_back = rootNode.addObject('ContactListener', name="LeftContact_back", collisionModel1 = suture_models.Skin.COLL, collisionModel2 = suture_models.SutureNeedle.COLL_BACK)
+        self.contact_listener_right_back = rootNode.addObject('ContactListener', name="RightContact_back", collisionModel1 = suture_models.Skin.COLL_right, collisionModel2 = suture_models.SutureNeedle.COLL_BACK)
 
         # Define spring force fields (SkinLeft-Needle; SkinRight-Needle; SkinLeft-SkinRight; SkinRight-SkinLeft)
         self.spring_force_field = skin_left.addObject("StiffSpringForceField", name="LeftFF", object1 = suture_models.Skin.MO,  object2=suture_models.SutureNeedle.COLL_BACK_MO)
@@ -179,8 +182,9 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
         self.points=0
 
 
-
-        
+    # 4: SOPRA, 2: SOTTO, 3 (SOPRA), 1 (SOTTO)
+    # 4, 3 right
+    # 2, 1 left
     ## Method called at each begin of animation step
     # @param event: animation step event
     # If a contact between the needle tip and one of the skin patches, the function retrieves the skin triangle index of contact and 
@@ -192,9 +196,13 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
 
     def onAnimateBeginEvent(self, event):
 
+        print(suture_models.SutureNeedle.COLL_MO.findData('position').value)
+
         newMaterial="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45"
         coll_indexes=self.contact_listener.getContactElements() 
         coll_indexes_right=self.contact_listener_right.getContactElements() 
+
+        #print(self.contact_listener_right_back.getContactElements() )
 
         # In case of collision (SkinLeft-Needle):
         if coll_indexes!=[] and self.finished==True:
@@ -204,10 +212,12 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
 
             coll_indexes2=coll_indexes[0]
             coll_index_skin=coll_indexes2[1]
+            print(self.root.GeomagicDeviceRight.findData('positionDevice').value[2])
 
             # Does it belong to box 1? If it does: 
-            if coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value:
-                print("Box 1")    
+            if (coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceRight.findData('positionDevice').value[2]<=2.5):
+                print("Box 1") 
+
                 
                 # Change sphere color
                 suture_models.sphere.M1.findData('material').value=newMaterial 
@@ -234,11 +244,14 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
                     self.points+=1
 
                 self.finished=True
+                self.contactRight_disattach()   # ADDED TO BREAK SPRINGS WITHOUT BUTTON!
     
             
             # Does it belong to box 2? If it does: 
-            elif coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value:
+            elif (coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceRight.findData('positionDevice').value[2]<=2.5):
                 print("Box 2")
+
+                
                 # Change sphere color
                 suture_models.sphere.M2.findData('material').value=newMaterial
 
@@ -252,8 +265,6 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
 
                         # Then remove the previous springs.
                         self.contactLeft_disattach()    
-
-                          
 
                     # Set this box as the last one attached
                     self.boxAttached=suture_models.Skin.sphere2Box
@@ -278,11 +289,12 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
 
             coll_indexes2=coll_indexes_right[0]
             coll_index_skin=coll_indexes2[1]
-            # print("index", coll_index_skin)
+            print(self.root.GeomagicDeviceRight.findData('positionDevice').value[2])
 
             # Does it belong to a box? If it does: 
-            if coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value:
+            if (coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceRight.findData('positionDevice').value[2]>=2):
                 print("Box 3")
+
                 # Change sphere color
                 suture_models.sphere.M3.findData('material').value=newMaterial
 
@@ -308,7 +320,7 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
                 self.finished=True
     
             # Does it belong to a box? If it does: 
-            elif coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value:
+            elif (coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceRight.findData('positionDevice').value[2]>=2):
                 print("Box 4")
 
                 # Change sphere color
@@ -340,13 +352,13 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
                 self.finished=True
 
 
-        if self.root.GeomagicDevice.findData('button2').value==1:
+        if self.root.GeomagicDeviceRight.findData('button2').value==1:
             if self.springsCreated_left==True:
                 self.contactRight_disattach()
             if self.springsCreated_right==True:
                 self.contactLeft_disattach()
 
-        # if self.root.GeomagicDevice.findData('button1').value==1:
+        # if self.root.GeomagicDeviceRight.findData('button1').value==1:
         #     self.root.animate = False
         #     Config=open('Config.txt')
         #     for line in Config:
@@ -367,6 +379,18 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
         
         #label .ending
         #print("no collision")
+
+    def PiercingStateFnct(self, contact_listener):
+        print("Wait for needle to pierce")
+        #time.sleep(0.5)
+        for i in range(1000):
+            print(contact_listener.getContactElements() )
+            if contact_listener.getContactElements()!=[]:       
+                return 1
+        print("No contact")
+        return 0
+
+
 
 
     ## Method that creates springs between the right skin patch and the left one.

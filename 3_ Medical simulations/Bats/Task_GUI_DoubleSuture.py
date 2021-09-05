@@ -84,7 +84,7 @@ def WindowFAM(winFAM):
        submit_button.place(x=xSubmit, y=ySubmit)
 
        # Images
-       image1 = Image.open("Images/ring.png")
+       image1 = Image.open("C:\sofa\src\Chiara\Bats\Images/ring.png")
        image1 = image1.resize((400, 300), Image.ANTIALIAS)
        image1 = ImageTk.PhotoImage(image1)
        label2 = tk.Label(winFAM, image=image1)
@@ -93,7 +93,7 @@ def WindowFAM(winFAM):
        label2.configure(background='LightBlue1')
 
               # Images
-       image2 = Image.open("Images/cut.png")
+       image2 = Image.open("C:\sofa\src\Chiara\Bats\Images/cut.png")
        image2 = image2.resize((400, 300), Image.ANTIALIAS)
        image2 = ImageTk.PhotoImage(image2)
        label3 = tk.Label(winFAM, image=image2)

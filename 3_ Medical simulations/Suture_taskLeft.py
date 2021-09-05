@@ -20,9 +20,8 @@ skinVolume_fileName="mesh/skin_volume_403020_05" #03 troppo lento
 needleVolume_fileName="mesh/suture_needle.obj"
 threadVolume_fileName="mesh/threadCh2"
 
-# Data
-stiffness_springNeedle=40
-stiffness_springSkins=100
+stiffness_springNeedle=150 #100 #300 slows sim
+stiffness_springSkins=200
 
 
 
@@ -72,10 +71,10 @@ def createScene(root):
     # Required plugins
     root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaCarving SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
 
-    root.addObject('OglLabel', label="SUTURE TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
-    root.addObject('OglLabel', label="Pierce the skin in correnspondence of the green spheres", x=20, y=70, fontsize=20, selectContrastingColor="1")
-    root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
-    #root.addObject('ViewerSetting', fullscreen="true")
+    # root.addObject('OglLabel', label="SUTURE TASK - TRAINING", x=20, y=20, fontsize=30, selectContrastingColor="1")
+    # root.addObject('OglLabel', label="Pierce the skin in correnspondence of the green spheres", x=20, y=70, fontsize=20, selectContrastingColor="1")
+    # root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
+    root.addObject('ViewerSetting', fullscreen="true")
     root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
 
     # Collision pipeline
@@ -97,7 +96,7 @@ def createScene(root):
 
     # Add skin
     x=[8,8,13.5,13.5]
-    y=[6,14,3,10]
+    y=[4.5,10.5,4,10] #[4,10,5,11]
     z=2
     boxSize=2
 
@@ -112,8 +111,8 @@ def createScene(root):
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
 
 
-    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="1", 
-    drawDevice="0", positionBase="10 8 10",  orientationBase="0.707 0 0 0.707", forceFeedBack="@SutureNeedleLeft/LCPFFNeedle")
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="0", 
+    drawDevice="0", positionBase="10 6 10",  orientationBase="0.707 0 0 0.707", forceFeedBack="@SutureNeedleLeft/LCPFFNeedle")
 
     GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
 
@@ -183,6 +182,8 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
         self.points=0
 
 
+    # 2 sopra, 4 sotto, 1sopra , 3sotto
+    
 
         
     ## Method called at each begin of animation step
@@ -210,8 +211,9 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
             coll_index_skin=coll_indexes2[1]
 
             # Does it belong to box 1? If it does: 
-            if coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value:
+            if (coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]>=2):
                 print("Box 1")    
+                print(self.root.GeomagicDeviceLeft.findData('positionDevice').value[2])
                 
                 # Change sphere color
                 suture_models.sphere.M1.findData('material').value=newMaterial 
@@ -241,8 +243,9 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
     
             
             # Does it belong to box 2? If it does: 
-            elif coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value:
+            elif (coll_index_skin in suture_models.Skin.sphere2Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]>=2):
                 print("Box 2")
+                print(self.root.GeomagicDeviceLeft.findData('positionDevice').value[2])
                 # Change sphere color
                 suture_models.sphere.M2.findData('material').value=newMaterial
 
@@ -278,14 +281,15 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
         # In case of collision (SkinRight-Needle):
         if coll_indexes_right!=[] and self.finished==True:
             print("Contact on the right")
+            print(self.root.GeomagicDeviceLeft.findData('positionDevice').value[2])
             self.finished=False
 
             coll_indexes2=coll_indexes_right[0]
             coll_index_skin=coll_indexes2[1]
             # print("index", coll_index_skin)
-
+            print(self.root.GeomagicDeviceLeft.findData('positionDevice').value[2])
             # Does it belong to a box? If it does: 
-            if coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value:
+            if (coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value ) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]<=2.5):
                 print("Box 3")
                 # Change sphere color
                 suture_models.sphere.M3.findData('material').value=newMaterial
@@ -310,10 +314,12 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
                     self.points+=1
 
                 self.finished=True
+                self.contactLeft_disattach()   # ADDED TO BREAK SPRINGS WITHOUT BUTTON!
     
             # Does it belong to a box? If it does: 
-            elif coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value:
+            elif (coll_index_skin in suture_models.Skin.sphere4Box.findData('triangleIndices').value ) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]<=2.5):
                 print("Box 4")
+                print(self.root.GeomagicDeviceLeft.findData('positionDevice').value[2])
 
                 # Change sphere color
                 suture_models.sphere.M4.findData('material').value=newMaterial
