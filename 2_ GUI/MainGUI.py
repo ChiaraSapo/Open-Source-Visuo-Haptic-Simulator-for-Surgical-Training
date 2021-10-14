@@ -16,6 +16,8 @@ import sys
 
 
 
+
+
 # Write bat file to run the simulations
 def writeBat(command=None):
 
@@ -169,18 +171,20 @@ def Window2(win2):
        
        # Define window visual
        win2.geometry("1400x900")
+       win2.configure(background='LightBlue1')
 
        # Option menus variables
        dev_n_var = tk.StringVar()
        task_var = tk.StringVar()
        plot_var = tk.StringVar()
+       hand_var = tk.StringVar()
 
        # Entry variable 
        user_var = tk.StringVar()
 
        # Text
        label1 = tk.Label(win2, text='Run your SOFA Framework medical simulation')
-       label1.config(font=('Arial', 30))
+       label1.config(font=('Arial', 30),background='LightBlue1')
        label1.place(x=xTitle, y=yTitle)
 
        # Images
@@ -190,12 +194,14 @@ def Window2(win2):
        label2 = tk.Label(win2, image=image1)
        label2.image = image1
        label2.place(x=xImage,y=yImage)
+       label2.configure(background='LightBlue1')
 
        # Take lines in input: USER NAME
        user_name = tk.Label(win2, text = 'Insert your name here', font=('calibre', 15, 'bold'))
        user_name_entry = tk.Entry(win2, textvariable = user_var, font=('calibre',10,'normal'))
        user_name.place(x=xentry, y=yentry, anchor='nw')
        user_name_entry.place(x=xentry+30, y=yentry+30, anchor='nw')
+       user_name.configure(background='LightBlue1')
        
        # Option menus: TASKS
        task_options = ["Suture", "Incision", "Rings"]
@@ -204,17 +210,26 @@ def Window2(win2):
        question_menu2.config(bg='skyblue1', font=('Arial', 15))
        question_menu2.pack()
        question_menu2.place(x=xoption1, y=yoption1, anchor='nw')
-       question_menu2["menu"].config(bg="skyblue1", font=('Arial', 15), bd=0)
+       question_menu2["menu"].config(bg="skyblue1", font=('Arial', 15))#, bd=0)
        #task_var.trace("w", run_medical_task)
 
        # Option menus: Number of devices
-       dev_n_options = ["Single", "Double"]
-       dev_n_var.set("Select the type of station")
-       question_menu = tk.OptionMenu(win2, dev_n_var, *dev_n_options)
+       dev_n_options = ["One", "Two"]
+       dev_n_var.set("Select the number of devices you have")
+       question_menu3 = tk.OptionMenu(win2, dev_n_var, *dev_n_options)
+       question_menu3.config(bg='skyblue1', font=('Arial', 15))
+       question_menu3.pack()
+       question_menu3.place(x=xoption2, y=yoption2, anchor='nw')
+       question_menu3["menu"].config(bg="skyblue1", font=('Arial', 15))#, bd=0)
+
+       # Option menus: Dominant Hand
+       dev_n_options = ["Right", "Left"]
+       hand_var.set("Select your dominant hand")
+       question_menu = tk.OptionMenu(win2, hand_var, *dev_n_options)
        question_menu.config(bg='skyblue1', font=('Arial', 15))
        question_menu.pack()
-       question_menu.place(x=xoption2, y=yoption2, anchor='nw')
-       question_menu["menu"].config(bg="skyblue1", font=('Arial', 15), bd=0)
+       question_menu.place(x=xoption2, y=yoption3, anchor='nw')
+       question_menu["menu"].config(bg="skyblue1", font=('Arial', 15))#, bd=0)
        #dev_n_var.trace("w", run_medical_task)
 
        # # Option menus: Number of devices
@@ -227,7 +242,7 @@ def Window2(win2):
        # question_menu3["menu"].config(bg="skyblue1", font=('Arial', 15), bd=0)
 
        # Buttons
-       submit_button = tk.Button(win2, text='Submit', command=partial(run_medical_task,task_var,dev_n_var,user_var,win2), bg='lightskyblue2', font=('Arial', 15, 'bold'))
+       submit_button = tk.Button(win2, text='Submit', command=partial(run_medical_task,task_var,dev_n_var,user_var,win2), bg='skyblue1', font=('Arial', 15, 'bold'))
        submit_button.place(x=xSubmit, y=ySubmit)
 
 

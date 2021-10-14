@@ -66,26 +66,29 @@ def Window1(win1):
 
        # Define window visual
        win1.geometry("1400x900")
+       win1.configure(background='LightBlue1')
 
        # Entry variables
        sofa_var=tk.StringVar()
        simul_var=tk.StringVar()
 
        # Text
-       label1 = tk.Label(win1, text='Prepare your computer:\nif you already did it, simply click submit! :)')
-       label1.config(font=('Arial', 30))
-       label1.place(x=xTitle, y=yTitle)
+       label1 = tk.Label(win1, text='Prepare your computer:\nif you already did it, simply click submit')
+       label1.config(font=('Arial', 30),background='LightBlue1')
+       label1.place(x=xTitle-30, y=yTitle)
+
 
        # Text
-       label2 = tk.Label(win1, text='Define here the paths to sofa and to the task codes on your computer.\nThis will allow to run the simulation authomatically')
-       label2.config(font=('Arial', 20))
-       label2.place(x=xSubtitle, y=ySubtitle)
+       label2 = tk.Label(win1, text='Define here your paths to sofa and to the task simulations scripts.\nYou will need to do it once only.')
+       label2.config(font=('Arial', 20),background='LightBlue1')
+       label2.place(x=xSubtitle-30, y=ySubtitle)
 
        # Take lines in input: PATH TO SOFA
        sofa_path = tk.Label(win1, text = 'Insert your path to runSofa (for example: /build/v20.12.02/bin/Release)', font=('calibre',10, 'bold'))
        sofapath_entry = tk.Entry(win1, textvariable = sofa_var, font=('calibre',10,'normal'))
        sofa_path.place(x=xentry1, y=yentry1)
        sofapath_entry.place(x=xentry1+130, y=yentry1+20)
+       sofa_path.configure(background='LightBlue1')
        #sofa_var.trace("w", writeConfig)
 
        # Take lines in input: PATH TO CODES
@@ -93,10 +96,11 @@ def Window1(win1):
        simulations_entry = tk.Entry(win1,textvariable = simul_var, font=('calibre',10,'normal'))
        simulations_path.place(x=xentry2, y=yentry2)
        simulations_entry.place(x=xentry1+130, y=yentry2+20)
+       simulations_path.configure(background='LightBlue1')
        #simul_var.trace("w", writeConfig)
 
        # Buttons
-       submit_button = tk.Button(win1, text='Submit', command=partial(writeConfig,sofa_var,simul_var), bg='lightskyblue2', font=('Arial', 15, 'bold'))
+       submit_button = tk.Button(win1, text='Submit', command=partial(writeConfig,sofa_var,simul_var), bg='deepskyblue2', font=('Arial', 15, 'bold'))
        submit_button.place(x=xSubmit, y=ySubmit)
 
 

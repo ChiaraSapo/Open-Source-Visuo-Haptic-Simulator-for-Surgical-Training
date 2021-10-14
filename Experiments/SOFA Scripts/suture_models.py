@@ -307,7 +307,7 @@ monitor=False, file1=None, file2=None, file3=None, rx=0, ry=0, rz=0): # If plots
     collFront.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
 
     collBack = name.addChild('collBack') #"0 0.007 -0.25" for scale5
-    collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0.5 0.007 -0.25", rx=rx, ry=ry, rz=rz,  dz="0", dx="0", dy="0")
+    collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0.1 0.007 -0.4", rx=rx, ry=ry, rz=rz,  dz="0", dx="0", dy="0")
     collBack.addObject('SphereCollisionModel', radius="0.3", name="SphereCollisionInstrument2", contactStiffness="2")
     #collBack.addObject('UniformMass', totalMass=1)
     collBack.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
