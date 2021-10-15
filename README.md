@@ -29,10 +29,14 @@ Scripts for the single device tasks for both right-handed and left-handed users.
 Scripts to analyze data after the experiments: create plots, compute various metrics,..
 
 # Installation and running procedure
-## Software requirements
-- Sofa v20.12.02 
-- Plugins: Geomagic, SofaPython3
-- Matplotlib, numpy, pandas, pillow, tkinter.
+## Requirements 
+### Software requirements for SOFA scripts
+- Sofa v20.12.02 (compiled with sources with the additional Geomagic and SofaPython3 plugins
+- Python 3.7.7
+### Software requirements for Data analysis and GUIs:
+- Python 3.9.0, Matplotlib, numpy, pandas, pillow, tkinter, Scipy, Seaborn, Openpyxl.
+### Hardware requirements:
+- One Geomagic Touch haptic device for all tasks / Two Geomagic Touch devices for the double-device suture
 
 ## Hardware requirements
 - Geomagic Touch Device 
