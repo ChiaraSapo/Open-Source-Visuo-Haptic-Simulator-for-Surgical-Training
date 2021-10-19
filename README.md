@@ -64,14 +64,12 @@ Scripts to analyze data after the experiments: create plots, compute various met
   - create_dataframes to save the pandas dataframes with information on all tasks and also export them in excel files (results are saved into Data\Metrics - Excel Tables).
   
 ## Running procedure
+- Through TouchSmartSetup.exe calibrate the device
 - (First time only): Use  GUIs/FIRST_TIME.bat to set the environment variables.
 - Use GUIs/EVERY_TIME.bat to test the simultions. 
 
 Note: You can also test a simulation by opening the Command Prompt, typing "cd path/to/runsofa" and then "runsofa path/to/task/task.py -a", by sustituting the name of the python script with the one that you want to run.
 
-
-# System's limitations
-TODO
 
 # Author and contacts
 Chiara Saporetti: chiara.saporetti@gmail.com
