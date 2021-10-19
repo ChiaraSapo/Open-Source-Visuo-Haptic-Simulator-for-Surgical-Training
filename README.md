@@ -8,7 +8,6 @@ The simulations are developed in the SOFA Framework environment and require the 
 
 # Main folders
 
-
 ## 1_Medical tasks
 Scripts for the prototypes of multiple haptic training surgery tasks to be performed on the SOFA Framework Open Source Software and the Geomagic Touch haptic device. The tasks scripts are two (for right-handed and left-handed subjects):
 - Incision_task_Right.py, Incision_task_Left.py
@@ -55,7 +54,7 @@ Scripts to analyze data after the experiments: create plots, compute various met
 - Copy the GUIs folder to a desired location. 
 - In GUIs/Config.txt file substitute the first line with your/path/to/runsofa
 - In GUIs/Config.txt file substitute the second line with your/path/to/MedicalSimulations
-- In GUIs/FIRST_TIME.bat and GUIs/EVERY_TIME.bat modify the variables: CONDAPATH, ENVNAME by setting the paths on your computer
+- In GUIs/FIRST_TIME.bat and GUIs/EVERY_TIME.bat modify the variables: CONDAPATH, ENVNAME by setting the paths on your computer.
 
 ### Data analysis tools (for full experimental session data only)
 - Copy the Analyze Data folder to a desired location.
@@ -65,9 +64,10 @@ Scripts to analyze data after the experiments: create plots, compute various met
   - create_dataframes to save the pandas dataframes with information on all tasks and also export them in excel files (results are saved into Data\Metrics - Excel Tables).
   
 ## Running procedure
-Use  GUIs/FIRST_TIME.bat to set the environment variables the first time. Then use GUIs/EVERY_TIME.bat to test the simultions. 
+- (First time only): Use  GUIs/FIRST_TIME.bat to set the environment variables.
+- Use GUIs/EVERY_TIME.bat to test the simultions. 
 
-Note:You can also test a simulation by opening the Command Prompt, typing cd path/to/runsofa then runsofa path/to/task/task.py, by sustituting the name of the python script with the one that you want to run.
+Note: You can also test a simulation by opening the Command Prompt, typing "cd path/to/runsofa" and then "runsofa path/to/task/task.py -a", by sustituting the name of the python script with the one that you want to run.
 
 
 # System's limitations
