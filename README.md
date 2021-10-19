@@ -4,6 +4,7 @@ Prototypes of 4 visuo-haptic simulations for surgical training:
   - a suture training task with two devices
   - an incision training task
   - a dexterity task
+  
 The simulations are developed in the SOFA Framework environment and require the use of a Geomagic Touch Device.
 
 # Main folders
@@ -76,7 +77,4 @@ Note: You can also test a simulation by opening the Command Prompt, typing "cd p
 
 # Author and contacts
 Chiara Saporetti: chiara.saporetti@gmail.com
-
-
-
 
