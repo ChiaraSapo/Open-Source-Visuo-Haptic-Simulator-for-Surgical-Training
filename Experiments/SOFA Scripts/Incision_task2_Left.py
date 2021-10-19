@@ -120,7 +120,7 @@ def createScene(root):
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
 
-    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="0", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Default Device", scale="1", drawDeviceFrame="0", 
     drawDevice="0", positionBase="7 15 0",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@SutureNeedleLeft/LCPFFNeedle")
 
     GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")

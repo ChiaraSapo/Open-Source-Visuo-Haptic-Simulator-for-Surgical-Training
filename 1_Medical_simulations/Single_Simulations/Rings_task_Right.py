@@ -111,7 +111,7 @@ def createScene(root):
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
 
     # Add geomagic drivers
-    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="0", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Default Device", scale="1", drawDeviceFrame="0", 
     drawDevice="0", positionBase="10 10 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedle/LCPFFNeedle")
 
     # Add geomagic nodes

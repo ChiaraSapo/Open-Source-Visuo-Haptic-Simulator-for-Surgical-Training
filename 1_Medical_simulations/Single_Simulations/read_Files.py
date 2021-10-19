@@ -1,7 +1,7 @@
 import numpy as np
 
 def read():
-    ConfigName=open('C:/sofa/src/Chiara/Bats/Config.txt')
+    ConfigName=open('C:/sofa/src/Chiara/Config.txt')
     for line in ConfigName:
         pass
     user_name = line
