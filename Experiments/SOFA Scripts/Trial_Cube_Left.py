@@ -70,7 +70,7 @@ def createScene(root):
     # View
     root.addObject('OglViewport', screenPosition="0 0", cameraPosition="-0.00322233 -20.3537 18.828", cameraOrientation="0.418151 -6.26277e-06 -0.000108372 0.908378")
 
-    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="0", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Default Device", scale="1", drawDeviceFrame="0", 
     drawDevice="0", positionBase="2 2 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedleLeft/LCPFFNeedle")
 
     # Add geomagic nodes

@@ -163,6 +163,7 @@ class RingsTaskController(Sofa.Core.Controller):
         self.contact_listener4 = rootNode.addObject('ContactListener', name="C4", collisionModel1 = suture_models.ring.C4, collisionModel2 = suture_models.StraightNeedle.COLL)
 
         self.TouchedRings=0
+        self.first=1
     
     ## Method called at each begin of animation step
     # @param event: animation step event
@@ -170,6 +171,18 @@ class RingsTaskController(Sofa.Core.Controller):
     # If there is a contact between ring i and the needle it changes the needle's color from green to red and, 
     # if other rings are red, it changes their color to green again
     def onAnimateBeginEvent(self, event):
+
+        if self.first==1:
+            Data = open('RingsFreq.txt', 'a')  
+            var1=f"\n\n"
+            Data.write(var1)
+            Data.close()
+            self.first=0
+ 
+        Data = open('RingsFreq.txt', 'a')  
+        var1=f"{time.time()}\n"
+        Data.write(var1)
+        Data.close()
 
         newMaterial="Default Diffuse 1 1 0 0 1 Ambient 1 0.2 0 0 1 Specular 0 1 0 0 1 Emissive 0 1 0 0 1 Shininess 0 45"
         oldMaterial="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45"

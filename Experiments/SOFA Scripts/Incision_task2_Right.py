@@ -4,6 +4,7 @@ import numpy as np
 import Sofa.SofaDeformable
 import incision_models 
 import suture_models
+import time
 import random
 import read_Files
 
@@ -149,305 +150,6 @@ def GeomagicDevice(parentNode=None, name=None, position=None):
     GeomagicDevice.MSC=name.GEOMSC
 
 
-## Controller for incision task.
-# Handles the cutting of the skin
-'''
-class IncisionTaskTrainingController(Sofa.Core.Controller):
-    
-    ## Constructor of the class. 
-    # @param name: name of the controller
-    # @param rootnode: path to the root node of the simulation
-    # @param skin_left: path to the left skin patch root node
-    # @param skin_right: path to the right skin patch root node
-    # Defines the contact listeners between skin and the scalpel and creates the 8 force fields between skin patches
-    
-    def __init__(self, root, skin_left, skin_right):
-        
-        Sofa.Core.Controller.__init__(self, root, skin_left, skin_right)
-        self.contact_listener = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL, collisionModel2 = incision_models.Scalpel.COLL_FRONT)
-        self.contact_listener_right = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL_right, collisionModel2 = incision_models.Scalpel.COLL_FRONT)
-        self.contact_listener2 = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL, collisionModel2 = incision_models.Scalpel.COLL_FRONT2)
-        self.contact_listener2_right = root.addObject('ContactListener', collisionModel1 = incision_models.Skin.COLL_right, collisionModel2 = incision_models.Scalpel.COLL_FRONT2)
-        
-        self.rootNode=root
-
-        self.spring_force_field1 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field2 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field3 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field4 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field5 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field6 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field7 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field8 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field9 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field10 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field11 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-        self.spring_force_field12 = skin_left.addObject("StiffSpringForceField",  object1=incision_models.Skin.MO,  object2=incision_models.Skin.MO_right)
-
-        self.indices1=[  4, 5, 72, 73, 74, 105, 106, 234, 235, 236, 241, 292, 464, 610, 642, 643, 955  ]
-        self.indices2=[  75, 76, 77, 107, 108, 109, 233, 237, 278, 594, 627, 829  ]
-        self.indices3=[  78, 79, 110, 111, 222, 238, 239, 269, 456, 537, 618, 830, 858  ]
-        self.indices4=[  80, 81, 82, 112, 113, 114, 218, 223, 224, 267, 514, 589, 630, 862, 864  ]
-        self.indices5=[  83, 84, 85, 115, 116, 117, 219, 229, 283, 512, 619, 869  ]
-        self.indices6=[  86, 87, 118, 119, 217, 220, 221, 268, 536, 591, 617, 877, 884  ]
-        self.indices7=[  88, 89, 90, 120, 121, 122, 208, 225, 230, 264, 280, 515, 613, 631, 873  ]
-        self.indices8=[  91, 92, 93, 123, 124, 125, 209, 210, 284, 525, 906, 907  ]
-        self.indices9=[  94, 95, 126, 127, 211, 226, 231, 272, 529, 535, 621, 629, 890  ]
-        self.indices10=[  96, 97, 98, 128, 129, 130, 212, 227, 232, 266, 489, 543, 624, 840, 885  ]
-        self.indices11=[  99, 100, 101, 131, 132, 133, 213, 214, 277, 476, 628, 836  ]
-        self.indices12=[  6, 7, 102, 103, 104, 134, 135, 215, 216, 228, 252, 290, 294, 606, 639, 827, 957  ]
-
-        self.indices1_right=[  0, 1, 8, 9, 10, 41, 42, 203, 204, 205, 247, 291, 482, 607, 956  ]
-        self.indices2_right=[  11, 12, 13, 43, 44, 45, 201, 206  ]
-        self.indices3_right=[  14, 15, 46, 47, 191, 202, 207, 939  ]
-        self.indices4_right=[  16, 17, 18, 48, 49, 50, 185, 187, 192, 273  ]
-        self.indices5_right=[  19, 20, 21, 51, 52, 53, 188, 197  ]
-        self.indices6_right=[  22, 23, 54, 55, 186, 189, 190  ]
-        self.indices7_right=[  24, 25, 26, 56, 57, 58, 176, 193, 198  ]
-        self.indices8_right=[  27, 28, 29, 59, 60, 61, 177, 178  ]
-        self.indices9_right=[  30, 31, 62, 63, 179, 194, 199  ]
-        self.indices10_right=[  32, 33, 34, 64, 65, 66, 180, 195, 200, 959  ]
-        self.indices11_right=[  35, 36, 37, 67, 68, 69, 181, 182, 625, 960  ]
-        self.indices12_right=[  2, 3, 38, 39, 40, 70, 71, 183, 184, 196, 259, 289, 595, 608  ]
-
-        self.ff1=True
-        self.ff2=True
-        self.ff3=True
-        self.ff4=True
-        self.ff5=True
-        self.ff6=True
-        self.ff7=True
-        self.ff8=True
-        self.ff9=True
-        self.ff10=True
-        self.ff11=True
-        self.ff12=True
-
-        springs = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices1,self.indices1_right)] # Then set to right indices (the ones below)
-        self.spring_force_field1.addSprings(springs)
-
-        springs2 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices2,self.indices2_right)] # Then set to right indices (the ones below)
-        self.spring_force_field2.addSprings(springs2)
-
-        springs3 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices3,self.indices3_right)] # Then set to right indices (the ones below)
-        self.spring_force_field3.addSprings(springs3)
-
-        springs4 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices4,self.indices4_right)] # Then set to right indices (the ones below)
-        self.spring_force_field4.addSprings(springs4)
-
-        springs5 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices5,self.indices5_right)] # Then set to right indices (the ones below)
-        self.spring_force_field5.addSprings(springs5)
-
-        springs6 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices6,self.indices6_right)] # Then set to right indices (the ones below)
-        self.spring_force_field6.addSprings(springs6)
-
-        springs7 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices7,self.indices7_right)] # Then set to right indices (the ones below)
-        self.spring_force_field7.addSprings(springs7)
-
-        springs8 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices8,self.indices8_right)] # Then set to right indices (the ones below)
-        self.spring_force_field8.addSprings(springs8)
-
-        springs9 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices9,self.indices9_right)] # Then set to right indices (the ones below)
-        self.spring_force_field5.addSprings(springs9)
-
-        springs10 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices10,self.indices10_right)] # Then set to right indices (the ones below)
-        self.spring_force_field6.addSprings(springs10)
-
-        springs11 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices11,self.indices11_right)] # Then set to right indices (the ones below)
-        self.spring_force_field7.addSprings(springs11)
-
-        springs12 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices12,self.indices12_right)] # Then set to right indices (the ones below)
-        self.spring_force_field8.addSprings(springs12)
-
-
-    ## Method called at each begin of animation step
-    # @param event: animation step event
-    # If a contact between the scalpel and the skin, the force field in that point is deactivated
-
-    def onAnimateBeginEvent(self, event): 
-
-        coll_indexes=self.contact_listener.getContactElements()
-        coll_indexes_right=self.contact_listener_right.getContactElements()
-        coll_indexes2=self.contact_listener2.getContactElements()
-        coll_indexes2_right=self.contact_listener2_right.getContactElements()
-        
-        if coll_indexes!=[]:
-            print("Contact left top")
-            self.left_ff(coll_indexes)         
-            
-        elif coll_indexes_right!=[]:     
-            print("Contact right top")
-            self.right_ff(coll_indexes_right) 
-
-        if coll_indexes2!=[] and coll_indexes==[]:
-            print("Contact left bottom")
-            self.left_ff(coll_indexes2)   
-
-        elif coll_indexes2_right!=[] and coll_indexes_right==[]:     
-            print("Contact right bottom")
-            self.right_ff(coll_indexes2_right)  
-    
-        # self.indices1=incision_models.Skin.borderBox1.findData('indices').value
-        # self.indices2=incision_models.Skin.borderBox2.findData('indices').value        
-        # self.indices3=incision_models.Skin.borderBox3.findData('indices').value
-        # self.indices4=incision_models.Skin.borderBox4.findData('indices').value
-        # self.indices5=incision_models.Skin.borderBox5.findData('indices').value
-        # self.indices6=incision_models.Skin.borderBox6.findData('indices').value        
-        # self.indices7=incision_models.Skin.borderBox7.findData('indices').value
-        # self.indices8=incision_models.Skin.borderBox8.findData('indices').value
-        # self.indices9=incision_models.Skin.borderBox9.findData('indices').value
-        # self.indices10=incision_models.Skin.borderBox10.findData('indices').value        
-        # self.indices11=incision_models.Skin.borderBox11.findData('indices').value
-        # self.indices12=incision_models.Skin.borderBox12.findData('indices').value
-
-        # self.indices1_right=incision_models.Skin.borderBox1_right.findData('indices').value
-        # self.indices2_right=incision_models.Skin.borderBox2_right.findData('indices').value        
-        # self.indices3_right=incision_models.Skin.borderBox3_right.findData('indices').value
-        # self.indices4_right=incision_models.Skin.borderBox4_right.findData('indices').value
-        # self.indices5_right=incision_models.Skin.borderBox5_right.findData('indices').value
-        # self.indices6_right=incision_models.Skin.borderBox6_right.findData('indices').value        
-        # self.indices7_right=incision_models.Skin.borderBox7_right.findData('indices').value
-        # self.indices8_right=incision_models.Skin.borderBox8_right.findData('indices').value
-        # self.indices9_right=incision_models.Skin.borderBox9_right.findData('indices').value
-        # self.indices10_right=incision_models.Skin.borderBox10_right.findData('indices').value        
-        # self.indices11_right=incision_models.Skin.borderBox11_right.findData('indices').value
-        # self.indices12_right=incision_models.Skin.borderBox12_right.findData('indices').value
-
-        # print("1L")
-        # print("[", self.computeIndices(self.indices1), "]")
-        # print("2L")
-        # print("[", self.computeIndices(self.indices2), "]")
-        # print("3L")
-        # print("[", self.computeIndices(self.indices3), "]")
-        # print("4L")
-        # print("[", self.computeIndices(self.indices4), "]")
-        # print("5L")
-        # print("[", self.computeIndices(self.indices5), "]")
-        # print("6L")
-        # print("[", self.computeIndices(self.indices6), "]")
-        # print("7L")
-        # print("[", self.computeIndices(self.indices7), "]")
-        # print("8L")
-        # print("[", self.computeIndices(self.indices8), "]")
-        # print("9L")
-        # print("[", self.computeIndices(self.indices9), "]")
-        # print("10L")
-        # print("[", self.computeIndices(self.indices10), "]")
-        # print("11L")
-        # print("[", self.computeIndices(self.indices11), "]")
-        # print("12L")
-        # print("[", self.computeIndices(self.indices12), "]")
-        # print("1R")
-        # print("[", self.computeIndices(self.indices1_right), "]")
-        # print("2R")
-        # print("[", self.computeIndices(self.indices2_right), "]")
-        # print("3R")
-        # print("[", self.computeIndices(self.indices3_right), "]")
-        # print("4R")
-        # print("[", self.computeIndices(self.indices4_right), "]")
-        # print("5R")
-        # print("[", self.computeIndices(self.indices5_right), "]")
-        # print("6R")
-        # print("[", self.computeIndices(self.indices6_right), "]")
-        # print("7R")
-        # print("[", self.computeIndices(self.indices7_right), "]")
-        # print("8R")
-        # print("[", self.computeIndices(self.indices8_right), "]")
-        # print("9R")
-        # print("[", self.computeIndices(self.indices9_right), "]")
-        # print("10R")
-        # print("[", self.computeIndices(self.indices10_right), "]")
-        # print("11R")
-        # print("[", self.computeIndices(self.indices11_right), "]")
-        # print("12R")
-        # print("[", self.computeIndices(self.indices12_right), "]")
-
-
-
-
-    ## Method to dectivate force fields after a contact on the left side of the skin has occurred.
-    # @param: skin triangle indices and scalpel point indices on which contact happened 
-    # Estracts the skin triangle index and checks if it belongs to any of the border boxes: if it does, the force field in that point is deactivated
-    def left_ff(self, coll_indexes):   
-        coll_indexes2=coll_indexes[0]
-        coll_index_skin=coll_indexes2[1]
-        if coll_index_skin in incision_models.Skin.borderBox1.findData('triangleIndices').value and self.ff1==True:
-            self.spring_force_field1.clear()
-            self.ff1=False
-        elif coll_index_skin in incision_models.Skin.borderBox2.findData('triangleIndices').value and self.ff2==True:
-            self.spring_force_field2.clear()
-            self.ff2=False
-        elif coll_index_skin in incision_models.Skin.borderBox3.findData('triangleIndices').value and self.ff3==True:
-            self.spring_force_field3.clear()
-            self.ff3=False
-        elif coll_index_skin in incision_models.Skin.borderBox4.findData('triangleIndices').value and self.ff4==True:
-            self.spring_force_field4.clear()
-            self.ff4=False
-        elif coll_index_skin in incision_models.Skin.borderBox5.findData('triangleIndices').value and self.ff5==True:
-            self.spring_force_field5.clear()
-            self.ff5=False
-        elif coll_index_skin in incision_models.Skin.borderBox6.findData('triangleIndices').value and self.ff6==True:
-            self.spring_force_field6.clear()
-            self.ff6=False
-        elif coll_index_skin in incision_models.Skin.borderBox7.findData('triangleIndices').value and self.ff7==True:
-            self.spring_force_field7.clear()
-            self.ff7=False
-        elif coll_index_skin in incision_models.Skin.borderBox8.findData('triangleIndices').value and self.ff8==True:
-            self.spring_force_field8.clear()
-            self.ff8=False
-        else:
-            print(self.ff1, self.ff2, self.ff3, self.ff4, self.ff5, self.ff6, self.ff7, self.ff8)
-   
-   
-    ## Method to dectivate force fields after a contact on the right side of the skin has occurred.
-    # @param: skin triangle indices and scalpel point indices on which contact happened 
-    # Estracts the skin triangle index and checks if it belongs to any of the border boxes: if it does, the force field in that point is deactivated
-    def right_ff(self, coll_indexes_right):
-        coll_indexes2=coll_indexes_right[0]
-        coll_index_skin=coll_indexes2[1]
-        if coll_index_skin in incision_models.Skin.borderBox1_right.findData('triangleIndices').value and self.ff1==True:
-            self.spring_force_field1.clear()
-            self.ff1=False
-        elif coll_index_skin in incision_models.Skin.borderBox2_right.findData('triangleIndices').value and self.ff2==True:
-            self.spring_force_field2.clear()
-            self.ff2=False
-        elif coll_index_skin in incision_models.Skin.borderBox3_right.findData('triangleIndices').value and self.ff3==True:
-            self.spring_force_field3.clear()
-            self.ff3=False
-        elif coll_index_skin in incision_models.Skin.borderBox4_right.findData('triangleIndices').value and self.ff4==True:
-            self.spring_force_field4.clear()
-            self.ff4=False
-        elif coll_index_skin in incision_models.Skin.borderBox5_right.findData('triangleIndices').value and self.ff5==True:
-            self.spring_force_field5.clear()
-            self.ff5=False
-        elif coll_index_skin in incision_models.Skin.borderBox6_right.findData('triangleIndices').value and self.ff6==True:
-            self.spring_force_field6.clear()
-            self.ff6=False
-        elif coll_index_skin in incision_models.Skin.borderBox7_right.findData('triangleIndices').value and self.ff7==True:
-            self.spring_force_field7.clear()
-            self.ff7=False
-        elif coll_index_skin in incision_models.Skin.borderBox8_right.findData('triangleIndices').value and self.ff8==True:
-            self.spring_force_field8.clear()
-            self.ff8=False
-        else:
-            print("Index does not belong to a border box")
-
-
-        
-
-    ## Method to compute the string of indices given the input array of integers.
-    # @param indicesBox: array of indices 
-
-    def computeIndices(self, indicesBox):
-        N_indices=len(indicesBox)
-        result=' '  
-
-        for i in range(N_indices):
-            result += str(indicesBox[i]) + ", "
-
-        return result
-'''
-
 class IncisionTaskTrainingController(Sofa.Core.Controller):
 
     def __init__(self, root, skin_left, skin_right):
@@ -518,12 +220,26 @@ class IncisionTaskTrainingController(Sofa.Core.Controller):
 
         springs8 = [Sofa.SofaDeformable.LinearSpring(index1=i, index2=j, springStiffness=stiffness_springSkins, dampingFactor=2, restLength=0.001) for i, j in zip(self.indices8,self.indices8_right)] # Then set to right indices (the ones below)
         self.spring_force_field8.addSprings(springs8)
+        self.first=1
 
 
 
 
     # # Uncomment to recompute indices
     def onAnimateBeginEvent(self, event): 
+
+        
+        if self.first==1:
+            Data = open('CutFreq.txt', 'a')  
+            var1=f"\n\n"
+            Data.write(var1)
+            Data.close()
+            self.first=0
+ 
+        Data = open('CutFreq.txt', 'a')  
+        var1=f"{time.time()}\n"
+        Data.write(var1)
+        Data.close()
 
         #print(self.rootNode.GeomagicDevice.forceFeedBack)
         #print("1")

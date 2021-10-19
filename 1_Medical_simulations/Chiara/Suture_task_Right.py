@@ -105,7 +105,7 @@ def createScene(root):
     sphere3Box=[x[2]-boxSize, y[2]-boxSize, -0.1, x[2]+boxSize, y[2]+boxSize, 3], sphere4Box=[x[3]-boxSize, y[3]-boxSize, -0.1, x[3]+boxSize, y[3]+boxSize, 3], side=1) 
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
-    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="0", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Default Device", scale="1", drawDeviceFrame="0", 
     drawDevice="0", positionBase="10 6 10",  orientationBase="0.707 0 0 0.707", tags="Omni", forceFeedBack="@SutureNeedle/LCPFFNeedle")
     
     GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDeviceRight.positionDevice")

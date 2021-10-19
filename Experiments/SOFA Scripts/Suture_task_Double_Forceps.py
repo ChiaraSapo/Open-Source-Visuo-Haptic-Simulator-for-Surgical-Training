@@ -70,7 +70,7 @@ def createScene(root):
     # root.addObject('OglLabel', label="Pierce the skin in correnspondence of the green spheres", x=20, y=70, fontsize=20, selectContrastingColor="1")
     # root.addObject('OglLabel', label="starting from the one closest to the needle", x=20, y=100, fontsize=20, selectContrastingColor="1")
     #root.addObject('ViewerSetting', fullscreen="true")
-    root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
+    #root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
     
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")

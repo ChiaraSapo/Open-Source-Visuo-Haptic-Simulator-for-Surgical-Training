@@ -74,7 +74,7 @@ def createScene(root):
     root.addObject('RequiredPlugin', pluginName="SofaBaseMechanics SofaBaseTopology  Geomagic SofaCarving SofaBoundaryCondition  SofaConstraint SofaDeformable SofaEngine SofaGeneralLoader SofaGeneralObjectInteraction SofaGeneralSimpleFem SofaHaptics SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaOpenglVisual SofaRigid SofaSimpleFem SofaSparseSolver SofaUserInteraction SofaTopologyMapping SofaValidation")
 
     root.addObject('ViewerSetting', fullscreen="true")
-    root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
+    #root.addObject('BackgroundSetting', color="0.3 0.5 0.8")
 
     # Collision pipeline
     root.addObject('CollisionPipeline', depth="6", verbose="0", draw="0")
@@ -106,7 +106,7 @@ def createScene(root):
 
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
     root.addObject('GeomagicDriver', name="GeomagicDeviceRight", deviceName="Right Device", scale="1", drawDeviceFrame="0", 
-    drawDevice="0", positionBase="10 6 10",  orientationBase="0.707 0 0 0.707", tags="Omni", forceFeedBack="@SutureNeedle/LCPFFNeedle")
+    drawDevice="1", positionBase="10.5 6 10",  orientationBase="0.707 0 0 0.707", tags="Omni", forceFeedBack="@SutureNeedle/LCPFFNeedle")
     
     GeomagicDevice(parentNode=root, name='Omni', position="@GeomagicDeviceRight.positionDevice")
 
@@ -198,13 +198,13 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
     def onAnimateBeginEvent(self, event):
 
         if self.first==1:
-            Data = open('Sut.txt', 'a')  
+            Data = open('SutFreq.txt', 'a')  
             var1=f"\n\n"
             Data.write(var1)
             Data.close()
             self.first=0
  
-        Data = open('Sut.txt', 'a')  
+        Data = open('SutFreq.txt', 'a')  
         var1=f"{time.time()}\n"
         Data.write(var1)
         Data.close()
@@ -228,7 +228,7 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
             ##print(self.root.GeomagicDeviceRight.findData('positionDevice').value[2])
 
             # Does it belong to box 1? If it does: 
-            if (coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value):# and (self.root.GeomagicDeviceRight.findData('positionDevice').value[2]<=2.5):
+            if (coll_index_skin in suture_models.Skin.sphere1Box.findData('triangleIndices').value) and (self.root.GeomagicDeviceRight.findData('positionDevice').value[2]<=3.5):
                 #print("Box 1") 
 
                 

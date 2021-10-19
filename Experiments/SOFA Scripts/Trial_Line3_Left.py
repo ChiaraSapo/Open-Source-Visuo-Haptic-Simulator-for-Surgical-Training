@@ -73,7 +73,7 @@ def createScene(root):
 
     # Add geomagic drivers
 
-    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="0", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Default Device", scale="1", drawDeviceFrame="0", 
     drawDevice="0", positionBase="2 2 10",  orientationBase="0.707 0 0 0.707")#, forceFeedBack="@StraightNeedleLeft/LCPFFNeedle")
 
     # Add geomagic nodes
