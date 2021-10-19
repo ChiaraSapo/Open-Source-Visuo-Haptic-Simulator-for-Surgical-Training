@@ -35,6 +35,9 @@ To use these files modify the bat files variables: CONDAPATH, ENVNAME, SIMULPATH
 ### Analyze data
 Scripts to analyze data after the experiments: create plots, compute various metrics, ...
 
+### Questionnaire data
+Excel files to analyse questionnaire data. Edimburgh is needed for the pre-experiment questionnaire to check the hand dominance, the others for the post-experiment questionnaires.
+
 
 
 # Installation and running procedure
