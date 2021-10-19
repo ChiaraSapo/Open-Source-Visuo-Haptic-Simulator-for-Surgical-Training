@@ -19,7 +19,134 @@ thread_poissonRatio=0.8
 
 #ym3000, density2
 
+## This function defines a suture needle node with behavior/collision/visual models. It is mostly the same as SutureNeedle class............
+# @param parentNode: parent node of the suture needle
+# @param name: name of the behavior node
+# @param scale3d: scale of the needle along all directions
+# @param geomagic: if True, the needle is positioned on the Geomagic end effector
+# @param position: position of the geomagic end effector
+# @param external_rest_shape: rest shape of the geomagic end effector
+# @param monitor: if True, saves position, velocity and force of the needle 
+# @param file1: name of the file that saves positions
+# @param file2: name of the file that saves velocities
+# @param file3: name of the file that saves forces
 
+def Plier(parentNode=None, name=None, scale3d=[0.0, 0.0, 0.0], 
+position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs', # position and external_rest_shape are set by default for the single station case 
+monitor=False, file1=None, file2=None, file3=None, rx=0, ry=0, rz=0): # If plots are desired: save results in three different files
+    
+    # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
+
+    name=parentNode.addChild(name)
+    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
+    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
+    name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position=position, scale3d="2", rotation="0 0 10" ) #, src="@instrumentMeshLoader")
+    name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='100', angularStiffness='100', external_rest_shape=external_rest_shape, points='0', external_points='0') 
+    name.addObject('LCPForceFeedback', name="LCPFFPlier",  forceCoef="0.005", activate="true")# Decide forceCoef value better
+    name.addObject('UniformMass' , totalMass="3")
+    name.addObject('UncoupledConstraintCorrection')
+
+    Visu=name.addChild('Visu')
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/Forceps.obj", scale="0.5", handleSeams="1" )
+    Visu.addObject('OglModel', name="Visual", src='@meshLoader_3', rx=rx, ry=ry, rz=rz,  dz="0", dx="-1.5", dy="0",  color="0 0.5 0.796", scale=1)
+    Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
+
+    collBack = name.addChild('collBack') #"-4.2 0.02 -0.25" for scale5
+    collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0 0", rx=rx, ry=ry, rz=rz,  dz="0", dx="-1.5", dy="0")
+    collBack.addObject('SphereCollisionModel', radius="0.5", name="SphereCollisionInstrument2", contactStiffness="2", tags="CarvingTool")
+    #collFront.addObject('UniformMass', totalMass=1)
+    collBack.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
+
+
+    collFront = name.addChild('collFront') #"-4.2 0.02 -0.25" for scale5
+    collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="-3 0 0", rx=rx, ry=ry, rz=rz,  dz="0", dx="-1.5", dy="0")
+    collFront.addObject('SphereCollisionModel', radius="0.5", name="SphereCollisionInstrument", contactStiffness="2", tags="CarvingTool")
+    #collFront.addObject('UniformMass', totalMass=1)
+    collFront.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
+
+
+    if monitor==True:
+        collFront.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true", showTrajectories=0)
+        collFront.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
+        collFront.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="0", ExportForces="true")
+
+    Plier.COLL_FRONT=name.collFront.SphereCollisionInstrument.getLinkPath()
+    Plier.COLL_BACK_MO=name.collBack.Particle2.getLinkPath()
+
+
+
+
+
+## This function defines a training sphere node with visual model
+# @param parentNode: parent node of the sphere
+# @param name: name of the node
+# @param translation: translation
+# @param scale3d: scale of the sphere along all directions
+# @param color: color of the sphere
+# @param SphereModelNumber: indicates the number of the sphere (its position on the skin)
+
+def sphere(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0], SphereModelNumber=None):
+
+    name=parentNode.addChild(name)
+    name.addObject('MeshObjLoader', name='sphere', filename="C:\sofa\src\Chiara\mesh\sphere.obj") 
+    name.addObject('OglModel', name='sphereVis', src='@sphere', scale3d="1 1 1", translation=translation, color=color)
+    if SphereModelNumber=="M1":
+        sphere.M1=name.sphereVis
+    if SphereModelNumber=="M2":
+        sphere.M2=name.sphereVis
+    if SphereModelNumber=="M3":
+        sphere.M3=name.sphereVis
+    if SphereModelNumber=="M4":
+        sphere.M4=name.sphereVis
+
+
+## This function defines a training ring node with behavior/collision/visual models
+# @param parentNode: parent node of the ring
+# @param name: name of the node
+# @param translation: translation
+# @param scale3d: scale of the ring along all directions
+# @param RingModelNumber: indicates the number of the ring (its position on the skin)
+
+def ring(parentNode=None, name=None, translation=[0, 0, 0], scale3d=[0.0, 0.0, 0.0],  RingModelNumber=None): 
+    # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
+
+    name=parentNode.addChild(name)
+    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
+    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
+    name.addObject('MechanicalObject', template="Rigid3d", scale="1.1" ,dx=translation[0], dy=translation[1], dz=translation[2])
+    name.addObject('UniformMass' ,filename="BehaviorModels/torus.rigid")
+    name.addObject('UncoupledConstraintCorrection')
+    name.addObject('BoxROI', name='boxROI', box=[translation[0]-1,translation[1]-1,translation[2]-3,translation[0]+1,translation[1]+1,translation[2]], drawBoxes='true', computeTriangles='true')
+    name.addObject('RestShapeSpringsForceField', name='rest', points='@boxROI.indices', stiffness='1e12', angularStiffness='1e12')
+    
+    Visu=name.addChild('Visu')
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/torus.obj", scale="1.1", handleSeams="1" )
+    Visu.addObject('OglModel' ,name="VisualOGL" ,src="@meshLoader_3",material="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45")
+    Visu.addObject('RigidMapping' ,input="@..", output="@VisualOGL")
+    
+    Surf=name.addChild('Surf')
+    Surf.addObject('MeshObjLoader' ,filename="mesh/torus_for_collision.obj" ,name="loader" )
+    Surf.addObject('MeshTopology' ,src="@loader")
+    Surf.addObject('MechanicalObject' ,src="@loader", scale="1.1")
+    Surf.addObject('TriangleCollisionModel', name="Torus2Triangle" ,group="2")
+    Surf.addObject('LineCollisionModel', name="Torus2Line" ,group="2")
+    Surf.addObject('PointCollisionModel' ,name="Torus2Point" ,group="2")
+    Surf.addObject('RigidMapping')
+    
+    if RingModelNumber=="M1":
+        ring.C1=name.Surf.Torus2Triangle.getLinkPath()
+        ring.V1=name.Visu.VisualOGL
+        ring.itself1=name
+    if RingModelNumber=="M2":
+        ring.C2=name.Surf.Torus2Triangle.getLinkPath()
+        ring.V2=name.Visu.VisualOGL
+    if RingModelNumber=="M3":
+        ring.C3=name.Surf.Torus2Triangle.getLinkPath()
+        ring.V3=name.Visu.VisualOGL
+    if RingModelNumber=="M4":
+        ring.C4=name.Surf.Torus2Triangle.getLinkPath()
+        ring.V4=name.Visu.VisualOGL
+    
 
 ## This function defines a skin patch node with behavior/collision/visual models
 # @param parentNode: parent node of the skin patch
@@ -131,135 +258,6 @@ side=0, sphere1Box=[0.0, 0.0, 0.0], sphere2Box=[0.0, 0.0, 0.0],sphere3Box=[0.0, 
     return name
 
 
-
-## This function defines a suture needle node with behavior/collision/visual models. It is mostly the same as SutureNeedle class............
-# @param parentNode: parent node of the suture needle
-# @param name: name of the behavior node
-# @param scale3d: scale of the needle along all directions
-# @param geomagic: if True, the needle is positioned on the Geomagic end effector
-# @param position: position of the geomagic end effector
-# @param external_rest_shape: rest shape of the geomagic end effector
-# @param monitor: if True, saves position, velocity and force of the needle 
-# @param file1: name of the file that saves positions
-# @param file2: name of the file that saves velocities
-# @param file3: name of the file that saves forces
-
-def Plier(parentNode=None, name=None, scale3d=[0.0, 0.0, 0.0], 
-position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs', # position and external_rest_shape are set by default for the single station case 
-monitor=False, file1=None, file2=None, file3=None, rx=0, ry=0, rz=0): # If plots are desired: save results in three different files
-    
-    # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
-
-    name=parentNode.addChild(name)
-    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
-    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
-    name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position=position, scale3d="2", rotation="0 0 10" ) #, src="@instrumentMeshLoader")
-    name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='100', angularStiffness='100', external_rest_shape=external_rest_shape, points='0', external_points='0') 
-    name.addObject('LCPForceFeedback', name="LCPFFPlier",  forceCoef="0.005", activate="true")# Decide forceCoef value better
-    name.addObject('UniformMass' , totalMass="3")
-    name.addObject('UncoupledConstraintCorrection')
-
-    Visu=name.addChild('Visu')
-    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/Forceps.obj", scale="0.5", handleSeams="1" )
-    Visu.addObject('OglModel', name="Visual", src='@meshLoader_3', rx=rx, ry=ry, rz=rz,  dz="0", dx="-1.5", dy="0",  color="0 0.5 0.796", scale=1)
-    Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
-
-    collBack = name.addChild('collBack') #"-4.2 0.02 -0.25" for scale5
-    collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0 0", rx=rx, ry=ry, rz=rz,  dz="0", dx="-1.5", dy="0")
-    collBack.addObject('SphereCollisionModel', radius="0.5", name="SphereCollisionInstrument2", contactStiffness="2", tags="CarvingTool")
-    #collFront.addObject('UniformMass', totalMass=1)
-    collBack.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
-
-
-    collFront = name.addChild('collFront') #"-4.2 0.02 -0.25" for scale5
-    collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="-3 0 0", rx=rx, ry=ry, rz=rz,  dz="0", dx="-1.5", dy="0")
-    collFront.addObject('SphereCollisionModel', radius="0.5", name="SphereCollisionInstrument", contactStiffness="2", tags="CarvingTool")
-    #collFront.addObject('UniformMass', totalMass=1)
-    collFront.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
-
-
-    if monitor==True:
-        collFront.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true", showTrajectories=0)
-        collFront.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
-        collFront.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="0", ExportForces="true")
-
-    Plier.COLL_FRONT=name.collFront.SphereCollisionInstrument.getLinkPath()
-    Plier.COLL_BACK_MO=name.collBack.Particle2.getLinkPath()
-
-
-
-## This function defines a training sphere node with visual model
-# @param parentNode: parent node of the sphere
-# @param name: name of the node
-# @param translation: translation
-# @param scale3d: scale of the sphere along all directions
-# @param color: color of the sphere
-# @param SphereModelNumber: indicates the number of the sphere (its position on the skin)
-
-def sphere(parentNode=None, name=None, translation=[0.0, 0.0, 0.0], scale3d=[0.0, 0.0, 0.0], color=[0.0, 0.0, 0.0], SphereModelNumber=None):
-
-    name=parentNode.addChild(name)
-    name.addObject('MeshObjLoader', name='sphere', filename="C:\sofa\src\Chiara\mesh\sphere.obj") 
-    name.addObject('OglModel', name='sphereVis', src='@sphere', scale3d="1 1 1", translation=translation, color=color)
-    if SphereModelNumber=="M1":
-        sphere.M1=name.sphereVis
-    if SphereModelNumber=="M2":
-        sphere.M2=name.sphereVis
-    if SphereModelNumber=="M3":
-        sphere.M3=name.sphereVis
-    if SphereModelNumber=="M4":
-        sphere.M4=name.sphereVis
-
-
-## This function defines a training ring node with behavior/collision/visual models
-# @param parentNode: parent node of the ring
-# @param name: name of the node
-# @param translation: translation
-# @param scale3d: scale of the ring along all directions
-# @param RingModelNumber: indicates the number of the ring (its position on the skin)
-
-def ring(parentNode=None, name=None, translation=[0, 0, 0], scale3d=[0.0, 0.0, 0.0],  RingModelNumber=None): 
-    # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
-
-    name=parentNode.addChild(name)
-    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
-    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
-    name.addObject('MechanicalObject', template="Rigid3d", scale="1.1" ,dx=translation[0], dy=translation[1], dz=translation[2])
-    name.addObject('UniformMass' ,filename="BehaviorModels/torus.rigid")
-    name.addObject('UncoupledConstraintCorrection')
-    name.addObject('BoxROI', name='boxROI', box=[translation[0]-1,translation[1]-1,translation[2]-3,translation[0]+1,translation[1]+1,translation[2]], drawBoxes='true', computeTriangles='true')
-    name.addObject('RestShapeSpringsForceField', name='rest', points='@boxROI.indices', stiffness='1e12', angularStiffness='1e12')
-    
-    Visu=name.addChild('Visu')
-    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/torus.obj", scale="1.1", handleSeams="1" )
-    Visu.addObject('OglModel' ,name="VisualOGL" ,src="@meshLoader_3",material="Default Diffuse 1 0 0.5 0 1 Ambient 1 0 0.1 0 1 Specular 0 0 0.5 0 1 Emissive 0 0 0.5 0 1 Shininess 0 45")
-    Visu.addObject('RigidMapping' ,input="@..", output="@VisualOGL")
-    
-    Surf=name.addChild('Surf')
-    Surf.addObject('MeshObjLoader' ,filename="mesh/torus_for_collision.obj" ,name="loader" )
-    Surf.addObject('MeshTopology' ,src="@loader")
-    Surf.addObject('MechanicalObject' ,src="@loader", scale="1.1")
-    Surf.addObject('TriangleCollisionModel', name="Torus2Triangle" ,group="2")
-    Surf.addObject('LineCollisionModel', name="Torus2Line" ,group="2")
-    Surf.addObject('PointCollisionModel' ,name="Torus2Point" ,group="2")
-    Surf.addObject('RigidMapping')
-    
-    if RingModelNumber=="M1":
-        ring.C1=name.Surf.Torus2Triangle.getLinkPath()
-        ring.V1=name.Visu.VisualOGL
-        ring.itself1=name
-    if RingModelNumber=="M2":
-        ring.C2=name.Surf.Torus2Triangle.getLinkPath()
-        ring.V2=name.Visu.VisualOGL
-    if RingModelNumber=="M3":
-        ring.C3=name.Surf.Torus2Triangle.getLinkPath()
-        ring.V3=name.Visu.VisualOGL
-    if RingModelNumber=="M4":
-        ring.C4=name.Surf.Torus2Triangle.getLinkPath()
-        ring.V4=name.Visu.VisualOGL
-    
-
-
 ## This function defines a suture needle node with behavior/collision/visual models
 # @param parentNode: parent node of the suture needle
 # @param name: name of the behavior node
@@ -338,6 +336,76 @@ monitor=False, file1=None, file2=None, file3=None, rx=0, ry=0, rz=0): # If plots
     SutureNeedle.VIS=name.Visu.Visual
 
 
+## This function defines a suture needle node with behavior/collision/visual models. It is mostly the same as SutureNeedle class............
+# @param parentNode: parent node of the suture needle
+# @param name: name of the behavior node
+# @param scale3d: scale of the needle along all directions
+# @param geomagic: if True, the needle is positioned on the Geomagic end effector
+# @param position: position of the geomagic end effector
+# @param external_rest_shape: rest shape of the geomagic end effector
+# @param monitor: if True, saves position, velocity and force of the needle 
+# @param file1: name of the file that saves positions
+# @param file2: name of the file that saves velocities
+# @param file3: name of the file that saves forces
+
+def SutureNeedleLeft(parentNode=None, name=None, scale3d=[0.0, 0.0, 0.0], 
+position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs', # position and external_rest_shape are set by default for the single station case 
+monitor=False, file1=None, file2=None, file3=None, rx=0, ry=0, rz=0): # If plots are desired: save results in three different files
+    
+    # Taken from C:\sofa\src\examples\Components\collision\RuleBasedContactManager
+
+    name=parentNode.addChild(name)
+    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
+    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
+    name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position=position, scale3d="2", rotation="0 0 10" ) #, src="@instrumentMeshLoader")
+    name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='100', angularStiffness='100', external_rest_shape=external_rest_shape, points='0', external_points='0') 
+    name.addObject('LCPForceFeedback', name="LCPFFNeedle",  forceCoef="0.005", activate="true")# Decide forceCoef value better
+    #SutureNeedle.RS=name.InstrumentRestShape
+    name.addObject('UniformMass' , totalMass="3")
+    name.addObject('UncoupledConstraintCorrection')
+
+    Visu=name.addChild('Visu')
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="mesh/Suture_needle.obj", scale="2.0", handleSeams="1" )
+    Visu.addObject('OglModel', name="Visual", src='@meshLoader_3', rx=rx, ry=ry, rz=rz,  dz="0", dx="0", dy="0",  color="0 0.5 0.796", scale=1)
+    Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
+    
+    Surf=name.addChild('Surf')
+    Surf.addObject('MeshObjLoader' ,filename="mesh/Suture_needle.obj" ,name="loader" )
+    Surf.addObject('MeshTopology' ,src="@loader")
+    Surf.addObject('MechanicalObject' ,src="@loader", scale="2.0", rx=rx, ry=ry, rz=rz,  dz="0", dx="0", dy="0") #rz=180
+    #Surf.addObject('TriangleCollisionModel', name="Torus2Triangle") # DO NOT UNCOMMENT
+    #Surf.addObject('LineCollisionModel', name="Torus2Line" ) # DO NOT UNCOMMENT
+    Surf.addObject('PointCollisionModel' ,name="Torus2Point")
+    Surf.addObject('RigidMapping')
+
+    collFront = name.addChild('collFront') #"-4.2 0.02 -0.25" for scale5
+    collFront.addObject('MechanicalObject', template="Vec3d", name="Particle", position="-2.9 0.02 -0.4", rx=rx, ry=ry, rz=rz,  dz="0", dx="0", dy="0")
+    collFront.addObject('SphereCollisionModel', radius="0.3", name="SphereCollisionInstrument", contactStiffness="2", tags="CarvingTool")
+    #collFront.addObject('UniformMass', totalMass=1)
+    collFront.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle")
+
+    collBack = name.addChild('collBack') #"0 0.007 -0.25" for scale5
+    collBack.addObject('MechanicalObject', template="Vec3d", name="Particle2", position="0 0.007 -0.25", rx=rx, ry=ry, rz=rz,  dz="0", dx="0", dy="0")
+    collBack.addObject('SphereCollisionModel', radius="0.2", name="SphereCollisionInstrument2", contactStiffness="2")
+    #collBack.addObject('UniformMass', totalMass=1)
+    collBack.addObject('RigidMapping', name="MM->CM mapping",  input="@../InstrumentMechObject",  output="@Particle2")
+    
+    if monitor==True:
+        collFront.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportPositions="true", showTrajectories=0)
+        collFront.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportVelocities="true")
+        collFront.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", showForces="0", ExportForces="true")
+
+    SutureNeedleLeft.ITSELF=name
+    SutureNeedleLeft.COLL=name.Surf.Torus2Point.getLinkPath()
+    SutureNeedleLeft.MO=name.InstrumentMechObject.getLinkPath()
+    SutureNeedleLeft.COLL_BACK_MO=name.collBack.Particle2.getLinkPath()
+    SutureNeedleLeft.POS=name.InstrumentMechObject.findData('position').value
+    SutureNeedleLeft.COLL_FRONT=name.collFront.SphereCollisionInstrument.getLinkPath()
+    SutureNeedleLeft.COLL_FRONT_TAG=name.collFront.SphereCollisionInstrument
+    SutureNeedleLeft.COLL_BACK=name.collBack.SphereCollisionInstrument2.getLinkPath()
+    SutureNeedleLeft.MO_TAG=name.InstrumentMechObject
+    SutureNeedleLeft.VIS=name.Visu.Visual
+
 
 ## This function defines a straight needle node with behavior/collision/visual models. 
 # @param parentNode: parent node of the suture needle
@@ -389,4 +457,55 @@ monitor=False, file1=None, file2=None, file3=None):
     StraightNeedle.MO=name.InstrumentMechObject#.getLinkPath()
     StraightNeedle.POS=name.InstrumentMechObject.findData('position').value
     StraightNeedle.MO_TAG=name.InstrumentMechObject
+
+
+## This function defines a straight needle node with behavior/collision/visual models. It is mostly the same as SutureNeedle class............
+# @param parentNode: parent node of the suture needle
+# @param name: name of the behavior node
+# @param scale3d: scale of the needle along all directions
+# @param geomagic: if True, the needle is positioned on the Geomagic end effector
+# @param position: position of the geomagic end effector
+# @param monitor: if True, saves position, velocity and force of the needle 
+# @param file1: name of the file that saves positions
+# @param file2: name of the file that saves velocities
+# @param file3: name of the file that saves forces
+
+def StraightNeedleLeft(parentNode=None, name=None, scale3d=[0.06, 0.5, 0.5], color=[0.0, 0.0, 0.0],
+position="@GeomagicDevice.positionDevice", external_rest_shape='@../Omni/DOFs', # position and external_rest_shape are set by default for the single station case 
+monitor=False, file1=None, file2=None, file3=None): 
+
+    name=parentNode.addChild(name)
+    name.addObject('EulerImplicitSolver',  rayleighStiffness="0.1", rayleighMass="0.1" )
+    name.addObject('CGLinearSolver', iterations="25", tolerance="1e-5" ,threshold="1e-5")
+    name.addObject('MechanicalObject',  name='InstrumentMechObject', template='Rigid3d', position=position, scale3d=scale3d) #, src="@instrumentMeshLoader")
+    name.addObject('RestShapeSpringsForceField', name="InstrumentRestShape", stiffness='1000', angularStiffness='1000', external_rest_shape=external_rest_shape, points='0', external_points='0') 
+    name.addObject('LCPForceFeedback', name="LCPFFNeedle", forceCoef="0.02", activate="true")# Decide forceCoef value better
+    name.addObject('UniformMass' , totalMass="3")
+    name.addObject('UncoupledConstraintCorrection')
+
+    Visu=name.addChild('Visu')
+    Visu.addObject('MeshObjLoader' ,name="meshLoader_3", filename="C:\sofa\src\Chiara\mesh\straight_needle.obj", scale3d=scale3d, handleSeams="1" , translation=[0, 0, 10] , rotation=[0, 90, 0])
+    Visu.addObject('OglModel',name="Visual", src='@meshLoader_3',  color="0 0.5 0.796", translation=[0,0,-11], isEnabled=1)#, rotation=[90, 0, 0])#, dz=3)
+    Visu.addObject('RigidMapping' ,input="@..", output="@Visual")
+    
+    Surf=name.addChild('Surf')
+    Surf.addObject('MeshObjLoader' ,filename="C:\sofa\src\Chiara\mesh\straight_needle.obj" ,scale3d=scale3d, name="loader", translation=[0, 0, 10] , rotation=[0, 90, 0])
+    Surf.addObject('MeshTopology' ,src="@loader")
+    Surf.addObject('MechanicalObject' ,src="@loader", translation=[0,0,-11])#, rotation=[90, 0, 0])
+    #Surf.addObject('TriangleCollisionModel', name="Torus2Triangle") # DO NOT UNCOMMENT
+    #Surf.addObject('LineCollisionModel', name="Torus2Line" ) # DO NOT UNCOMMENT
+    Surf.addObject('PointCollisionModel' ,name="Torus2Point")
+    Surf.addObject('RigidMapping')
+    
+    if monitor==True:
+        Surf.addObject("Monitor", name=file1, indices="0", listening="1", TrajectoriesPrecision="0.1", showTrajectories="1", ExportPositions="true", 	sizeFactor="2")
+        Surf.addObject("Monitor", name=file2, indices="0", listening="1", TrajectoriesPrecision="0.1",  ExportVelocities="true")
+        Surf.addObject("Monitor", name=file3, indices="0", listening="1", TrajectoriesPrecision="0.1", ExportForces="true")
+
+
+    StraightNeedleLeft.ITSELF=name
+    StraightNeedleLeft.COLL=name.Surf.Torus2Point.getLinkPath()
+    StraightNeedleLeft.MO=name.InstrumentMechObject.getLinkPath()
+    StraightNeedleLeft.POS=name.InstrumentMechObject.findData('position').value
+    StraightNeedleLeft.MO_TAG=name.InstrumentMechObject
 

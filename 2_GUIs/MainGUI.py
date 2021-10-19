@@ -15,32 +15,23 @@ import datetime
 import sys
 
 
-
-
-
-# Write bat file to run the simulations
-def writeBat(command=None):
-
-       # Open config file, read it and then close it
+def write_bat(task_type, number_dev, dominant_hand): 
        Config=open('Config.txt')
        sofa=Config.readline()
        simul=Config.readline()
        Config.close()
 
-       # Create bat file 
-       if command=="Suture_task.py":              
-              myBat = open('run_suture.bat', 'x')
-              myBat = open('run_suture.bat', 'w')
-       elif command=="Incision_task.py":
-              myBat = open('run_incision.bat', 'x')
-              myBat = open('run_incision.bat', 'w')
-       elif command=="Rings_task.py":
-              myBat = open('run_rings.bat', 'x')
-              myBat = open('run_rings.bat', 'w')
+       # Create bat file    
+       if number_dev=='Single':
+              bat_file_name=f'{task_type}_task_{dominant_hand}'
+       else: 
+              bat_file_name=f'{task_type}_task_{dominant_hand}_Double'      
+       myBat = open(f'{bat_file_name}.bat', 'x')
+       myBat = open(f'{bat_file_name}.bat', 'w')
        
        # Define commands to write
        command1 = f"cd {sofa}\n"
-       command2 = f"runSofa {simul}\{command}"
+       command2 = f"runSofa {simul}\Single_Simulations\{bat_file_name}.py"
 
        # Write commands on the file
        myBat.write(command1)
@@ -51,39 +42,29 @@ def writeBat(command=None):
 
 
 # Start suture simulation
-def start_suture(): 
-       try: 
-              subprocess.call(['run_suture.bat'])
-              sys.exit()
-       except:
-              writeBat("Suture_task.py")
-              time.sleep(3)
-              subprocess.call(['run_suture.bat'])
-              sys.exit()
+def start_task(task_type, number_dev, dominant_hand): 
+       
+       number_dev="Single" # REMOVE THIS IF YOU ACTUALLY WANT TO USE A DOUBLE STATION: RIGHT NOW I WILL SET IT TO SINGLE
+       if number_dev=='Single':
+              bat_file_name=f'{task_type}_task_{dominant_hand}.bat'
+       else: 
+              bat_file_name=f'{task_type}_task_{dominant_hand}_Double.bat'
 
-# Start suture simulation
-def start_rings(): 
-       try: 
-              print("by bat")
-              subprocess.call(['run_rings.bat'])
+       if os.path.exists(bat_file_name): 
+              print("File exists ")
+              subprocess.call([bat_file_name])
               sys.exit()
-       except:
-              writeBat("Rings_task.py")
-              time.sleep(3)
-              subprocess.call(['run_rings.bat'])
+       else:
+              print("File does not exist")
+              write_bat(task_type, number_dev, dominant_hand)
+
+              time.sleep(6)
+              subprocess.call([bat_file_name])
               sys.exit()
 
 
-# Start incision simulation
-def start_incision(): 
-       try: 
-              subprocess.call(['run_incision.bat'])
-              sys.exit()
-       except:
-              writeBat("Incision_task.py")
-              time.sleep(3)
-              subprocess.call(['run_incision.bat'])
-              sys.exit()
+
+
 
 def writeUserFile(user_name,task_type,number_dev):
        
@@ -91,10 +72,10 @@ def writeUserFile(user_name,task_type,number_dev):
               user_name="UnknownUser"
        fileName=f"{user_name}.txt"
 
-       Config = open('Config.txt', 'a')    
-       var=f"\n{user_name}"
-       Config.write(var)
-       Config.close()
+       # Config = open('Config.txt', 'a')    
+       # var=f"\n{user_name}"
+       # Config.write(var)
+       # Config.close()
 
        # Create/Open Data file
        if os.path.exists(fileName):
@@ -120,35 +101,17 @@ def writeUserFile(user_name,task_type,number_dev):
 
 
 # Define the medical task to be run
-def run_medical_task(task_var, dev_n_var, user_var, win2):
+def run_medical_task(task_var,dev_n_var,user_var,dominant_hand_var,win2):
        
        # Get data
        task_type=str(task_var.get())
        number_dev=str(dev_n_var.get())
        user_name=str(user_var.get())
+       dominant_hand=str(dominant_hand_var.get())
 
        writeUserFile(user_name,task_type,number_dev)
-       
-       if task_type=="Incision":
-              if number_dev=="Single":
-                     start_incision()
-              elif number_dev=="Double":
-                     print("Incision is only available with single station at the moment")
-                     start_incision()
+       start_task(task_type, number_dev, dominant_hand)
 
-       elif task_type=="Suture":
-              if number_dev=="Single":
-                     start_suture()
-              elif number_dev=="Double":
-                     print("Suture is only available with single station at the moment")
-                     start_suture()
-       
-       elif task_type=="Rings":
-              if number_dev=="Single":
-                     start_rings()
-              elif number_dev=="Double":
-                     print("Rings is only available with single station at the moment")
-                     start_rings()
 
 
 
@@ -177,7 +140,7 @@ def Window2(win2):
        dev_n_var = tk.StringVar()
        task_var = tk.StringVar()
        plot_var = tk.StringVar()
-       hand_var = tk.StringVar()
+       dominant_hand_var = tk.StringVar()
 
        # Entry variable 
        user_var = tk.StringVar()
@@ -185,7 +148,7 @@ def Window2(win2):
        # Text
        label1 = tk.Label(win2, text='Run your SOFA Framework medical simulation')
        label1.config(font=('Arial', 30),background='LightBlue1')
-       label1.place(x=xTitle, y=yTitle)
+       label1.place(x=xTitle-60, y=yTitle)
 
        # Images
        image1 = Image.open("Images\geo.png")
@@ -214,8 +177,8 @@ def Window2(win2):
        #task_var.trace("w", run_medical_task)
 
        # Option menus: Number of devices
-       dev_n_options = ["One", "Two"]
-       dev_n_var.set("Select the number of devices you have")
+       dev_n_options = ["Single", "Double"]
+       dev_n_var.set("Select the type of station")
        question_menu3 = tk.OptionMenu(win2, dev_n_var, *dev_n_options)
        question_menu3.config(bg='skyblue1', font=('Arial', 15))
        question_menu3.pack()
@@ -223,26 +186,17 @@ def Window2(win2):
        question_menu3["menu"].config(bg="skyblue1", font=('Arial', 15))#, bd=0)
 
        # Option menus: Dominant Hand
-       dev_n_options = ["Right", "Left"]
-       hand_var.set("Select your dominant hand")
-       question_menu = tk.OptionMenu(win2, hand_var, *dev_n_options)
+       hand_options = ["Right", "Left"]
+       dominant_hand_var.set("Select your dominant hand")
+       question_menu = tk.OptionMenu(win2, dominant_hand_var, *hand_options)
        question_menu.config(bg='skyblue1', font=('Arial', 15))
        question_menu.pack()
        question_menu.place(x=xoption2, y=yoption3, anchor='nw')
        question_menu["menu"].config(bg="skyblue1", font=('Arial', 15))#, bd=0)
        #dev_n_var.trace("w", run_medical_task)
 
-       # # Option menus: Number of devices
-       # plot_options = ["Plot pos/vel/acc/force/traj", "Plot trajectory only", "Plot nothing"]
-       # plot_var.set("Select the desired plots")
-       # question_menu3 = tk.OptionMenu(win2, plot_var, *plot_options)
-       # question_menu3.config(bg='skyblue1', font=('Arial', 15))
-       # question_menu3.pack()
-       # question_menu3.place(x=xoption3, y=yoption3, anchor='nw')
-       # question_menu3["menu"].config(bg="skyblue1", font=('Arial', 15), bd=0)
-
        # Buttons
-       submit_button = tk.Button(win2, text='Submit', command=partial(run_medical_task,task_var,dev_n_var,user_var,win2), bg='skyblue1', font=('Arial', 15, 'bold'))
+       submit_button = tk.Button(win2, text='Submit', command=partial(run_medical_task,task_var,dev_n_var,user_var,dominant_hand_var,win2), bg='skyblue1', font=('Arial', 15, 'bold'))
        submit_button.place(x=xSubmit, y=ySubmit)
 
 
