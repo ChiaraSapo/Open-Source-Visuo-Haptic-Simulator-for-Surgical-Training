@@ -112,7 +112,7 @@ def createScene(root):
     #################### GEOMAGIC TOUCH DEVICE ##################################################################
 
 
-    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Left Device", scale="1", drawDeviceFrame="0", 
+    root.addObject('GeomagicDriver', name="GeomagicDeviceLeft", deviceName="Default Device", scale="1", drawDeviceFrame="0", 
     drawDevice="0", positionBase="10 6 10",  orientationBase="0.707 0 0 0.707", forceFeedBack="@SutureNeedleLeft/LCPFFNeedle")
 
     GeomagicDevice(parentNode=root, name='OmniLeft', position="@GeomagicDeviceLeft.positionDevice")
@@ -200,13 +200,13 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
     def onAnimateBeginEvent(self, event):
 
         if self.first==1:
-            Data = open('SutLeft.txt', 'a')  
+            Data = open('SutFreq.txt', 'a')  
             var1=f"\n\n"
             Data.write(var1)
             Data.close()
             self.first=0
  
-        Data = open('SutLeft.txt', 'a')  
+        Data = open('SutFreq.txt', 'a')  
         var1=f"{time.time()}\n"
         Data.write(var1)
         Data.close()
@@ -303,7 +303,7 @@ class SutureTaskTrainingController(Sofa.Core.Controller):
             # #print("index", coll_index_skin)
             #print(self.root.GeomagicDeviceLeft.findData('positionDevice').value[2])
             # Does it belong to a box? If it does: 
-            if (coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value ):# and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]<=2.5):
+            if (coll_index_skin in suture_models.Skin.sphere3Box.findData('triangleIndices').value ) and (self.root.GeomagicDeviceLeft.findData('positionDevice').value[2]<=3.5):
                 #print("Box 3")
                 # Change sphere color
                 suture_models.sphere.M3.findData('material').value=newMaterial
