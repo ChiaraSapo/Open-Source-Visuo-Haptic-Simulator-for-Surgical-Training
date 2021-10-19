@@ -4,6 +4,7 @@ Prototypes of 4 visuo-haptic simulations for surgical training:
   - a suture training task with two devices
   - an incision training task
   - a dexterity task
+  
 The simulations are developed in the SOFA Framework environment and require the use of a Geomagic Touch Device.
 
 # Main folders
@@ -34,6 +35,9 @@ To use these files modify the bat files variables: CONDAPATH, ENVNAME, SIMULPATH
 
 ### Analyze data
 Scripts to analyze data after the experiments: create plots, compute various metrics, ...
+
+### Questionnaire data
+Excel files to analyse questionnaire data. Edimburgh is needed for the pre-experiment questionnaire to check the hand dominance, the others for the post-experiment questionnaires.
 
 
 
@@ -73,7 +77,4 @@ Note: You can also test a simulation by opening the Command Prompt, typing "cd p
 
 # Author and contacts
 Chiara Saporetti: chiara.saporetti@gmail.com
-
-
-
 
