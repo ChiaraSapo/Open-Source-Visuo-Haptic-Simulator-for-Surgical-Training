@@ -18,17 +18,16 @@ import Suture_Time
 from matplotlib.pyplot import cm
 from scipy.stats import spearmanr
 
-# Write path to the Folder containing each subject's data
-subjects_path='C:\\Users\\chiar\\OneDrive\\Desktop\\Subjects'
+subjects_path='.'
 
 ## Choose what to compute/plot:
 # Plot graphs of incision, rings and suture
 plot_incision=False#True
 plot_rings=False#True
-plot_suture=True
+plot_suture=False#True
 # Compute metrics: path length, peaks, mean distance....
 compute_metrics=True
-create_dataframes=True#False
+create_dataframes=False
 
 # Data for the metrics
 incision_dist_reps=[]
@@ -383,10 +382,12 @@ Handle_data.SutPL12(suture_PL12)
 # for i in range(16):
 #     rings_peaks.append(splits[i])
 
-Handle_data.Incision_barplot(incision_dist_reps, 'Incision 3D Mean Path Length [cm]')
-Handle_data.Incision_barplot(incision_min_dist_1_5,'Incision Mean maximum deviation along z [cm]')
-Handle_data.Incision_barplot(incision_min_dist_7,'Incision Mean maximum deviation along x [cm]')
-plt.close('all')
+
+
+# Handle_data.Incision_barplot(incision_dist_reps, 'Incision 3D Mean Path Length [cm]')
+# Handle_data.Incision_barplot(incision_min_dist_1_5,'Incision Mean maximum deviation along z [cm]')
+# Handle_data.Incision_barplot(incision_min_dist_7,'Incision Mean maximum deviation along x [cm]')
+# plt.close('all')
 
 Handle_data.Metrics_wrt_age(suture_dist_reps, 'Suture', 'Suture 3D Path Length [cm]')
 #Handle_data.Metrics_wrt_age(incision_dist_reps, 'Incision', 'Incision 3D Path Length [cm]')
@@ -394,14 +395,8 @@ Handle_data.Metrics_wrt_age(incision_min_dist_1_5, 'Incision','Incision Mean max
 Handle_data.Metrics_wrt_age(incision_min_dist_7, 'Incision','Incision Mean maximum deviation along x [cm]')
 Handle_data.Metrics_wrt_age(rings_dist_reps_3D, 'Rings', 'Rings 3D Path Length [cm]')
 Handle_data.Metrics_wrt_age(rings_dist_reps_2D, 'Rings', 'Rings 2D Path Length [cm]')
-plt.close('all')
-
-# Handle_data.Metrics_Per_User(suture_dist_reps, 'Suture', "Suture 3D Path Length [cm]")
-# Handle_data.Metrics_Per_User(incision_dist_reps, 'Incision', "Incision 3D Path Length [cm]")
-# Handle_data.Metrics_Per_User(rings_dist_reps_3D, 'Rings', "Rings 3D Path Length [cm]")
-# Handle_data.Metrics_Per_User(incision_min_dist_1_5,'Incision','Incision maximum deviation along z [cm]')
-# Handle_data.Metrics_Per_User(incision_min_dist_7,'Incision','Incision maximum deviation along x [cm]')
 # plt.close('all')
+
 
 Handle_data.Metrics_Per_User_Scatter(suture_dist_reps, 'Suture', "Suture 3D Path Length [cm]")
 #Handle_data.Metrics_Per_User_Scatter(incision_dist_reps, 'Incision', "Incision 3D Path Length [cm]")
@@ -412,24 +407,24 @@ Handle_data.Metrics_Per_User_Scatter(incision_min_dist_7,'Incision','Incision ma
 plt.close('all')
 
 
-# Handle_data.Metrics_Mean_Std_Err_Reps(incision_dist_reps,'Incision','Incision Mean Path Length [cm]')
-# Handle_data.Metrics_Mean_Std_Err_Reps(incision_min_dist_1_5,'Incision','Incision Mean maximum deviation along z [cm]')
-# Handle_data.Metrics_Mean_Std_Err_Reps(incision_min_dist_7,'Incision','Incision Mean maximum deviation along x [cm]')
-Handle_data.Metrics_Mean_Std_Err_Reps(rings_dist_reps_2D,'Rings','Rings Mean Path Length 2D [cm]')
-Handle_data.Metrics_Mean_Std_Err_Reps(rings_dist_reps_3D,'Rings','Rings Mean Path Length 3D [cm]')
-#Handle_data.Mean_Std_Dev_All(rings_peaks,'Rings','Peaks number', ' ')
-Handle_data.Metrics_Mean_Std_Err_Reps(suture_dist_reps,'Suture','Suture Mean Path Length 3D [cm]')
-plt.close('all')
+# # Handle_data.Metrics_Mean_Std_Err_Reps(incision_dist_reps,'Incision','Incision Mean Path Length [cm]')
+# # Handle_data.Metrics_Mean_Std_Err_Reps(incision_min_dist_1_5,'Incision','Incision Mean maximum deviation along z [cm]')
+# # Handle_data.Metrics_Mean_Std_Err_Reps(incision_min_dist_7,'Incision','Incision Mean maximum deviation along x [cm]')
+# Handle_data.Metrics_Mean_Std_Err_Reps(rings_dist_reps_2D,'Rings','Rings Mean Path Length 2D [cm]')
+# Handle_data.Metrics_Mean_Std_Err_Reps(rings_dist_reps_3D,'Rings','Rings Mean Path Length 3D [cm]')
+# #Handle_data.Mean_Std_Dev_All(rings_peaks,'Rings','Peaks number', ' ')
+# Handle_data.Metrics_Mean_Std_Err_Reps(suture_dist_reps,'Suture','Suture Mean Path Length 3D [cm]')
+# plt.close('all')
 
 
-# Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(incision_dist_reps,'Incision','Incision Mean Path Length [cm]')
-# Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(incision_min_dist_1_5,'Incision','Incision Mean maximum deviation along z [cm]')
-# Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(incision_min_dist_7,'Incision','Incision Mean maximum deviation along x [cm]')
-Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(rings_dist_reps_2D,'Rings','Rings Mean Path Length 2D [cm]')
-Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(rings_dist_reps_3D,'Rings','Rings Mean Path Length 3D [cm]')
-#Handle_data.Mean_Std_Dev_All(rings_peaks,'Rings','Peaks number', ' ')
-Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(suture_dist_reps,'Suture','Suture Mean Path Length 3D [cm]')
-plt.close('all')
+# # Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(incision_dist_reps,'Incision','Incision Mean Path Length [cm]')
+# # Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(incision_min_dist_1_5,'Incision','Incision Mean maximum deviation along z [cm]')
+# # Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(incision_min_dist_7,'Incision','Incision Mean maximum deviation along x [cm]')
+# Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(rings_dist_reps_2D,'Rings','Rings Mean Path Length 2D [cm]')
+# Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(rings_dist_reps_3D,'Rings','Rings Mean Path Length 3D [cm]')
+# #Handle_data.Mean_Std_Dev_All(rings_peaks,'Rings','Peaks number', ' ')
+# Handle_data.Metrics_Mean_Std_Err_Barplot_Reps(suture_dist_reps,'Suture','Suture Mean Path Length 3D [cm]')
+# plt.close('all')
 
 
 
